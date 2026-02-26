@@ -18,6 +18,14 @@ const aliyunAccessKeySecret = process.env.ALIBABA_CLOUD_ACCESS_KEY_SECRET || "";
 const aliyunSmsSignName = process.env.ALIBABA_CLOUD_SMS_SIGN_NAME || "";
 const aliyunSmsTemplateCode = process.env.ALIBABA_CLOUD_SMS_TEMPLATE_CODE || "";
 
+// 调试环境变量
+console.log('=== 环境变量检查 ===');
+console.log('ALIBABA_CLOUD_ACCESS_KEY_ID:', aliyunAccessKeyId ? '已设置' : '未设置');
+console.log('ALIBABA_CLOUD_ACCESS_KEY_SECRET:', aliyunAccessKeySecret ? '已设置' : '未设置');
+console.log('ALIBABA_CLOUD_SMS_SIGN_NAME:', aliyunSmsSignName ? `已设置: ${aliyunSmsSignName}` : '未设置');
+console.log('ALIBABA_CLOUD_SMS_TEMPLATE_CODE:', aliyunSmsTemplateCode ? `已设置: ${aliyunSmsTemplateCode}` : '未设置');
+console.log('========================');
+
 /**
  * 使用原生 HTTP + 签名方式调用阿里云 SMS API，支持通信号码认证服务
  */
@@ -80,11 +88,16 @@ async function sendAliyunSms(phone: string, code: string): Promise<void> {
   console.log(`SMS Service Type: ${isPhoneNumberVerification ? 'Phone Number Verification' : 'General SMS'}`);
   console.log(`Endpoint: ${endpoint}, Action: ${action}`);
   console.log(`Template Code: ${aliyunSmsTemplateCode}`);
+  console.log(`Sign Name: ${aliyunSmsSignName}`);
+  console.log(`Phone: ${phone}`);
+  console.log(`Code: ${code}`);
+  console.log(`Full URL (without signature): https://${endpoint}/?${canonicalQuery}`);
 
   const response = await fetch(url);
   const result = await response.json();
 
   console.log(`SMS API Response:`, result);
+  console.log(`Full Request URL: ${url}`);
 
   if (result.Code !== "OK") {
     throw new Error(result.Message || "SMS sending failed");
