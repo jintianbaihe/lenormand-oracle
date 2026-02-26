@@ -16,6 +16,7 @@ interface AppContextType {
   t: (key: string, params?: Record<string, any>) => string; // 国际化翻译函数
   user: User | null;
   login: (phone: string, code: string) => Promise<void>;
+  guestLogin: () => void;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   isAuthenticated: boolean;
@@ -96,7 +97,7 @@ const translations: Record<Language, Record<string, string>> = {
     delete: "Delete",
     share: "Share",
     preparation: "Preparation",
-    centerYourself: "Center yourself",
+    centerYourself: "Mindful Preparation",
     takeDeepBreath: "Take a deep breath.",
     focusOnQuestion: "Focus on your question.",
     tapToBegin: "Tap anywhere to begin the ritual",
@@ -135,6 +136,16 @@ const translations: Record<Language, Record<string, string>> = {
     startJourney: "Start Your Journey",
     cardsWaiting: "The cards are waiting",
     codeSent: "Verification code sent!",
+    skipLogin: "Skip Login",
+    shuffle: "Shuffle",
+    draw: "Draw",
+    tactileRitual: "Tactile Ritual",
+    tapToShuffle: "Tap or swipe up/down to shuffle...",
+    swipeToSpread: "Swipe right to spread the cards",
+    swipeToDraw: "When you feel ready, swipe right to start drawing",
+    selectMoreCards: "Select {count} more cards",
+    dragAcrossHorizon: "Tap or swipe to shuffle",
+    cardsDrawn: "Cards Drawn",
   },
   cn: {
     // ... 中文翻译条目
@@ -209,7 +220,7 @@ const translations: Record<Language, Record<string, string>> = {
     saveResult: "保存结果",
     saved: "已保存",
     preparation: "准备",
-    centerYourself: "静心冥想",
+    centerYourself: "正念准备",
     takeDeepBreath: "深呼吸。",
     focusOnQuestion: "专注于你的问题。",
     tapToBegin: "点击任意位置开始仪式",
@@ -247,6 +258,19 @@ const translations: Record<Language, Record<string, string>> = {
     startJourney: "开启你的旅程",
     cardsWaiting: "卡牌正在等待",
     codeSent: "验证码已发送！",
+    skipLogin: "跳过登录",
+    shuffle: "洗牌",
+    draw: "抽牌",
+    tactileRitual: "触感仪式",
+    tapToShuffle: "点击或上下滑动进行洗牌...",
+    swipeToSpread: "向右滑动展开牌堆",
+    swipeToDraw: "当你觉得洗牌完毕，左右滑动以抽牌",
+    selectMoreCards: "还需抽取 {count} 张牌",
+    dragAcrossHorizon: "点击或滑动进行洗牌",
+    cardsDrawn: "已抽取卡牌",
+    step01: "第一步",
+    step02: "第二步",
+    step03: "第三步",
   }
 };
 
@@ -285,6 +309,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('lenormand_user', JSON.stringify(mockUser));
   };
 
+  const guestLogin = () => {
+    const guestUser: User = {
+      id: 'guest_' + Date.now(),
+      username: 'Guest Traveler',
+      avatar: 'https://images.unsplash.com/photo-1515532760646-7d63e925263a?auto=format&fit=crop&q=80&w=200&h=200',
+    };
+    setUser(guestUser);
+    localStorage.setItem('lenormand_user', JSON.stringify(guestUser));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('lenormand_user');
@@ -301,14 +335,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const isAuthenticated = !!user;
 
   // 副作用：当主题切换时，动态修改 HTML 根元素的 class
+  // 这样 Tailwind 的 dark: 变体类就能根据该 class 自动生效
   useEffect(() => {
-    const root = window.document.documentElement;
+    const root = window.document.documentElement; // 获取 html 元素
     if (theme === 'dark') {
-      root.classList.add('dark');
+      root.classList.add('dark'); // 添加 dark 类
     } else {
-      root.classList.remove('dark');
+      root.classList.remove('dark'); // 移除 dark 类
     }
-  }, [theme]);
+  }, [theme]); // 依赖项为 theme
 
   // 切换主题的便捷方法
   const toggleTheme = () => {
@@ -317,9 +352,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   /**
    * 国际化翻译核心函数
+   * @param key 字典中的键
+   * @param params 模板替换参数，例如 { count: 3 } 会替换字符串中的 {count}
+   * @returns 翻译后的最终字符串
    */
   const t = (key: string, params?: Record<string, any>) => {
+    // 获取对应语言的文本，如果找不到则返回 key 本身
     let text = translations[language][key] || key;
+    // 如果有参数，遍历参数并进行正则替换
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
         text = text.replace(`{${k}}`, v.toString());
@@ -328,10 +368,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return text;
   };
 
+  // 返回 Provider，向下传递所有状态和方法
   return (
     <AppContext.Provider value={{ 
       language, setLanguage, theme, toggleTheme, t,
-      user, login, logout, updateProfile, isAuthenticated
+      user, login, guestLogin, logout, updateProfile, isAuthenticated
     }}>
       {children}
     </AppContext.Provider>
@@ -343,6 +384,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
  */
 export const useAppContext = () => {
   const context = useContext(AppContext);
+  // 如果不在 Provider 内部使用，抛出错误提示
   if (!context) throw new Error('useAppContext must be used within AppProvider');
   return context;
 };

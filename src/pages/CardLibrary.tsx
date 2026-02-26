@@ -96,20 +96,22 @@ export const CardLibrary = () => {
             />
           </div>
 
-          {/* 分类切换按钮组 - 极简风格 */}
-          <div className="flex flex-col gap-3">
-            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-              <button 
-                onClick={() => setActiveFilter({ type: 'all', value: 'all' })}
-                className={cn(
-                  "whitespace-nowrap px-4 py-1.5 rounded-lg border text-[9px] font-bold tracking-[0.1em] uppercase transition-all",
-                  activeFilter.type === 'all' 
-                    ? "bg-slate-200 dark:bg-white text-slate-900 dark:text-black border-slate-300 dark:border-white" 
-                    : "bg-transparent text-slate-500 border-slate-200 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/30"
-                )}
-              >
-                {t('all')}
-              </button>
+          {/* 分类切换按钮组 - 极简风格，单行滚动 */}
+          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+            <button 
+              onClick={() => setActiveFilter({ type: 'all', value: 'all' })}
+              className={cn(
+                "whitespace-nowrap px-4 py-1.5 rounded-lg border text-[9px] font-bold tracking-[0.1em] uppercase transition-all",
+                activeFilter.type === 'all' 
+                  ? "bg-slate-200 dark:bg-white text-slate-900 dark:text-black border-slate-300 dark:border-white" 
+                  : "bg-transparent text-slate-500 border-slate-200 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/30"
+              )}
+            >
+              {t('all')}
+            </button>
+            
+            {/* 极性过滤器 */}
+            <div className="flex gap-2 border-l border-slate-200 dark:border-white/10 pl-2">
               {categories.map(cat => (
                 <button 
                   key={cat}
@@ -126,7 +128,8 @@ export const CardLibrary = () => {
               ))}
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {/* 花色过滤器 */}
+            <div className="flex gap-2 border-l border-slate-200 dark:border-white/10 pl-2">
               {suits.map(suit => (
                 <button 
                   key={suit}

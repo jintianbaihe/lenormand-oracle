@@ -21,6 +21,14 @@ export const Preparation = () => {
       onClick={() => navigate(`/draw/${count}/${type}`)}
       className="flex-1 flex flex-col items-center justify-center relative overflow-hidden select-none cursor-pointer touch-none"
     >
+      {/* Header */}
+      <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-center px-6 pt-14 pb-4">
+        <div className="text-center">
+          <h2 className="text-[10px] uppercase tracking-[0.4em] font-bold text-gold/60 mb-0.5">Step 01</h2>
+          <p className="font-serif italic text-xl text-white">{t('mindfulPreparation')}</p>
+        </div>
+      </header>
+
       {/* 背景装饰：同心圆动画，模拟呼吸节奏 */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
         <motion.div 

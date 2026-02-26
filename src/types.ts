@@ -814,6 +814,7 @@ export interface User {
   avatar: string;
   phone?: string;
 }
+
 /**
  * 定义 AI 解读结果的 JSON Schema，用于约束 Gemini API 的输出格式
  */

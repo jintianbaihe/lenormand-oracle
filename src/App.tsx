@@ -62,7 +62,10 @@ const AppContent = () => {
   return (
     <div className="flex flex-col h-[100dvh] w-full overflow-hidden relative">
       <div className="mystic-bg-flow" />
-      {location.pathname !== '/auth' && <Header {...getHeaderProps()} />}
+      {location.pathname !== '/auth' && 
+       !location.pathname.startsWith('/preparation/') && 
+       !location.pathname.startsWith('/draw/') && 
+       <Header {...getHeaderProps()} />}
       
       <AnimatePresence mode="wait">
         <motion.div

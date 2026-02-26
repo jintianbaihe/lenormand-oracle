@@ -36,8 +36,8 @@ export const ReadingResult = () => {
   // isSaved: 当前记录是否已保存到本地
   // showSaveModal: 是否显示填写感悟的弹窗
   // reflection: 用户填写的感悟文本
-  const [interpretation, setInterpretation] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [interpretation, setInterpretation] = useState<any>(location.state?.interpretation || null);
+  const [loading, setLoading] = useState(!location.state?.interpretation);
   const [isSaved, setIsSaved] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [reflection, setReflection] = useState('');
@@ -52,6 +52,11 @@ export const ReadingResult = () => {
 
     // 定义异步获取解读的方法
     const getInterpretation = async () => {
+      if (interpretation) {
+        setLoading(false);
+        return;
+      }
+      
       try {
         // 调用 Gemini AI 服务进行解读
         const result = await interpretReading(cards, language);

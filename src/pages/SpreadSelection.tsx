@@ -100,7 +100,6 @@ export const SpreadSelection = () => {
     <div className="flex-1 flex flex-col px-6 pt-4 pb-32 overflow-y-auto no-scrollbar">
       {/* 页面标题和引导语 */}
       <div className="text-center mb-8">
-        <p className="text-indigo-400/80 font-medium tracking-[0.2em] uppercase text-[10px] mb-2">{t('advancedDivination')}</p>
         <p className="text-slate-400 text-xs font-light max-w-[240px] mx-auto">{t('selectLayout')}</p>
       </div>
 

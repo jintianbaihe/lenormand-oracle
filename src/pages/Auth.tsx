@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '../utils';
 
 export const Auth = () => {
-  const { t, login } = useAppContext();
+  const { t, login, guestLogin } = useAppContext();
   const navigate = useNavigate();
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -58,12 +58,23 @@ export const Auth = () => {
     }
   };
 
+  const handleSkip = () => {
+    guestLogin();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-between px-8 pt-20 pb-10 bg-midnight relative overflow-hidden">
       {/* Mystic Background Flow */}
       <div className="fixed inset-0 z-[-1] bg-[radial-gradient(circle_at_20%_30%,rgba(99,102,241,0.08)_0%,transparent_50%),radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08)_0%,transparent_50%)]" />
 
-      <header className="text-center mb-12">
+      <header className="text-center mb-12 relative">
+        <button 
+          onClick={handleSkip}
+          className="absolute top-0 right-0 text-indigo-400/60 text-xs font-bold tracking-widest uppercase hover:text-indigo-400 transition-colors"
+        >
+          {t('skipLogin')}
+        </button>
         <motion.div 
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
