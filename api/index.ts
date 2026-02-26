@@ -1,16 +1,9 @@
 import express from "express";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
-import { createRequire } from "module";
+import crypto from "crypto";
 
 dotenv.config();
-
-const require = createRequire(import.meta.url);
-
-// 使用 require 方式导入阿里云 SDK（解决 ESM 兼容问题）
-const Dysmsapi20170525 = require('@alicloud/dysmsapi20170525');
-const OpenApi = require('@alicloud/openapi-client');
-const $Util = require('@alicloud/tea-util');
 
 const app = express();
 
@@ -19,24 +12,53 @@ const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Alibaba Cloud SMS Initialization
-const aliyunAccessKeyId = process.env.ALIBABA_CLOUD_ACCESS_KEY_ID;
-const aliyunAccessKeySecret = process.env.ALIBABA_CLOUD_ACCESS_KEY_SECRET;
-const aliyunSmsSignName = process.env.ALIBABA_CLOUD_SMS_SIGN_NAME;
-const aliyunSmsTemplateCode = process.env.ALIBABA_CLOUD_SMS_TEMPLATE_CODE;
-const aliyunEndpoint = process.env.ALIBABA_CLOUD_SMS_ENDPOINT || "dysmsapi.aliyuncs.com";
+// Alibaba Cloud SMS 配置
+const aliyunAccessKeyId = process.env.ALIBABA_CLOUD_ACCESS_KEY_ID || "";
+const aliyunAccessKeySecret = process.env.ALIBABA_CLOUD_ACCESS_KEY_SECRET || "";
+const aliyunSmsSignName = process.env.ALIBABA_CLOUD_SMS_SIGN_NAME || "";
+const aliyunSmsTemplateCode = process.env.ALIBABA_CLOUD_SMS_TEMPLATE_CODE || "";
 
-const createAliyunClient = () => {
-  if (!aliyunAccessKeyId || !aliyunAccessKeySecret) return null;
-  const config = new OpenApi.Config({
-    accessKeyId: aliyunAccessKeyId,
-    accessKeySecret: aliyunAccessKeySecret,
-  });
-  config.endpoint = aliyunEndpoint;
-  return new Dysmsapi20170525.default(config);
-};
+/**
+ * 使用原生 HTTP + 签名方式调用阿里云 SMS API，完全不依赖 SDK
+ */
+async function sendAliyunSms(phone: string, code: string): Promise<void> {
+  const params: Record<string, string> = {
+    AccessKeyId: aliyunAccessKeyId,
+    Action: "SendSms",
+    Format: "JSON",
+    PhoneNumbers: phone,
+    RegionId: "cn-hangzhou",
+    SignName: aliyunSmsSignName,
+    SignatureMethod: "HMAC-SHA1",
+    SignatureNonce: crypto.randomUUID(),
+    SignatureVersion: "1.0",
+    TemplateCode: aliyunSmsTemplateCode,
+    TemplateParam: JSON.stringify({ code }),
+    Timestamp: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+    Version: "2017-05-25",
+  };
 
-const aliyunSmsClient = createAliyunClient();
+  // 按字母顺序排序并编码参数
+  const sortedKeys = Object.keys(params).sort();
+  const canonicalQuery = sortedKeys
+    .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+    .join("&");
+
+  const stringToSign = `GET&${encodeURIComponent("/")}&${encodeURIComponent(canonicalQuery)}`;
+  const signature = crypto
+    .createHmac("sha1", aliyunAccessKeySecret + "&")
+    .update(stringToSign)
+    .digest("base64");
+
+  const url = `https://dysmsapi.aliyuncs.com/?${canonicalQuery}&Signature=${encodeURIComponent(signature)}`;
+
+  const response = await fetch(url);
+  const result = await response.json() as any;
+
+  if (result.Code !== "OK") {
+    throw new Error(result.Message || "SMS sending failed");
+  }
+}
 
 app.use(express.json());
 
@@ -54,21 +76,12 @@ app.post("/api/auth/send-code", async (req, res) => {
     return res.status(400).json({ error: "Phone number is required" });
   }
 
-  // 生成 6 位随机验证码
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   console.log(`Verification code for ${phone}: ${code}`);
 
   try {
-    if (aliyunSmsClient && aliyunSmsSignName && aliyunSmsTemplateCode) {
-      const sendSmsRequest = new Dysmsapi20170525.SendSmsRequest({
-        phoneNumbers: phone,
-        signName: aliyunSmsSignName,
-        templateCode: aliyunSmsTemplateCode,
-        templateParam: JSON.stringify({ code }),
-      });
-      
-      const runtime = new $Util.RuntimeOptions({});
-      await aliyunSmsClient.sendSmsWithOptions(sendSmsRequest, runtime);
+    if (aliyunAccessKeyId && aliyunAccessKeySecret && aliyunSmsSignName && aliyunSmsTemplateCode) {
+      await sendAliyunSms(phone, code);
       res.json({ message: "Code sent successfully" });
     } else {
       res.json({ 
@@ -78,7 +91,7 @@ app.post("/api/auth/send-code", async (req, res) => {
     }
   } catch (error: any) {
     console.error("SMS Error:", error);
-    res.status(500).json({ error: "Failed to send SMS" });
+    res.status(500).json({ error: "Failed to send SMS: " + error.message });
   }
 });
 
@@ -117,9 +130,7 @@ app.post("/api/readings", async (req, res) => {
     const { date, title, cards, interpretation, reflection } = req.body;
     const { data, error } = await supabase
       .from("readings")
-      .insert([
-        { date, title, cards, interpretation, reflection }
-      ])
+      .insert([{ date, title, cards, interpretation, reflection }])
       .select();
 
     if (error) throw error;
