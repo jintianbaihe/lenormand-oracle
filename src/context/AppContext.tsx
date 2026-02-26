@@ -1,7 +1,6 @@
 // 导入 React 核心钩子
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
-import { apiService } from '../services/apiService';
 
 // 定义支持的语言类型
 type Language = 'en' | 'cn';
@@ -268,58 +267,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // 初始化加载用户信息
   useEffect(() => {
-    const savedToken = localStorage.getItem('lenormand_token');
     const savedUser = localStorage.getItem('lenormand_user');
-    
-    if (savedToken && savedUser) {
-      apiService.setAuthToken(savedToken);
+    if (savedUser) {
       setUser(JSON.parse(savedUser));
-      
-      // 验证token是否仍然有效
-      apiService.getCurrentUser().catch(() => {
-        // Token无效，清除本地存储
-        localStorage.removeItem('lenormand_token');
-        localStorage.removeItem('lenormand_user');
-        setUser(null);
-      });
     }
   }, []);
 
   const login = async (phone: string, code: string) => {
-    try {
-      const { user, token } = await apiService.login(phone, code);
-      setUser(user);
-      localStorage.setItem('lenormand_token', token);
-      localStorage.setItem('lenormand_user', JSON.stringify(user));
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    }
+    // 模拟登录逻辑
+    const mockUser: User = {
+      id: 'user_' + Date.now(),
+      username: 'Mystic Traveler',
+      avatar: 'https://images.unsplash.com/photo-1515532760646-7d63e925263a?auto=format&fit=crop&q=80&w=200&h=200',
+      phone
+    };
+    setUser(mockUser);
+    localStorage.setItem('lenormand_user', JSON.stringify(mockUser));
   };
 
-  const logout = async () => {
-    try {
-      await apiService.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-      apiService.clearAuthToken();
-      localStorage.removeItem('lenormand_token');
-      localStorage.removeItem('lenormand_user');
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('lenormand_user');
   };
 
   const updateProfile = async (updates: Partial<User>) => {
     if (user) {
-      try {
-        const updatedUser = await apiService.updateProfile(updates);
-        setUser(updatedUser);
-        localStorage.setItem('lenormand_user', JSON.stringify(updatedUser));
-      } catch (error) {
-        console.error('Profile update failed:', error);
-        throw error;
-      }
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem('lenormand_user', JSON.stringify(updatedUser));
     }
   };
 
