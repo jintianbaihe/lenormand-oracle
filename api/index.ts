@@ -1,14 +1,16 @@
 import express from "express";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
-<<<<<<< HEAD
-=======
-import Dysmsapi20170525, * as $Dysmsapi20170525 from '@alicloud/dysmsapi20170525';
-import OpenApi, * as $OpenApi from '@alicloud/openapi-client';
-import * as $Util from '@alicloud/tea-util';
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
+import { createRequire } from "module";
 
 dotenv.config();
+
+const require = createRequire(import.meta.url);
+
+// 使用 require 方式导入阿里云 SDK（解决 ESM 兼容问题）
+const Dysmsapi20170525 = require('@alicloud/dysmsapi20170525');
+const OpenApi = require('@alicloud/openapi-client');
+const $Util = require('@alicloud/tea-util');
 
 const app = express();
 
@@ -17,8 +19,6 @@ const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-<<<<<<< HEAD
-=======
 // Alibaba Cloud SMS Initialization
 const aliyunAccessKeyId = process.env.ALIBABA_CLOUD_ACCESS_KEY_ID;
 const aliyunAccessKeySecret = process.env.ALIBABA_CLOUD_ACCESS_KEY_SECRET;
@@ -28,17 +28,16 @@ const aliyunEndpoint = process.env.ALIBABA_CLOUD_SMS_ENDPOINT || "dysmsapi.aliyu
 
 const createAliyunClient = () => {
   if (!aliyunAccessKeyId || !aliyunAccessKeySecret) return null;
-  const config = new $OpenApi.Config({
+  const config = new OpenApi.Config({
     accessKeyId: aliyunAccessKeyId,
     accessKeySecret: aliyunAccessKeySecret,
   });
   config.endpoint = aliyunEndpoint;
-  return new Dysmsapi20170525(config);
+  return new Dysmsapi20170525.default(config);
 };
 
 const aliyunSmsClient = createAliyunClient();
 
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
 app.use(express.json());
 
 // API Routes
@@ -46,8 +45,6 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "API is running on Vercel" });
 });
 
-<<<<<<< HEAD
-=======
 /**
  * 发送短信验证码
  */
@@ -59,14 +56,11 @@ app.post("/api/auth/send-code", async (req, res) => {
 
   // 生成 6 位随机验证码
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  
-  // 在实际生产中，你应该将这个验证码存储在 Redis 或数据库中，并设置过期时间
-  // 这里我们仅模拟发送逻辑，或者如果配置了 Twilio 则真实发送
   console.log(`Verification code for ${phone}: ${code}`);
 
   try {
     if (aliyunSmsClient && aliyunSmsSignName && aliyunSmsTemplateCode) {
-      const sendSmsRequest = new $Dysmsapi20170525.SendSmsRequest({
+      const sendSmsRequest = new Dysmsapi20170525.SendSmsRequest({
         phoneNumbers: phone,
         signName: aliyunSmsSignName,
         templateCode: aliyunSmsTemplateCode,
@@ -77,7 +71,6 @@ app.post("/api/auth/send-code", async (req, res) => {
       await aliyunSmsClient.sendSmsWithOptions(sendSmsRequest, runtime);
       res.json({ message: "Code sent successfully" });
     } else {
-      // 如果没有配置阿里云，返回成功但仅在控制台打印（用于演示）
       res.json({ 
         message: "Alibaba Cloud SMS not configured. Code printed to server logs.",
         demoCode: process.env.NODE_ENV !== 'production' ? code : undefined 
@@ -89,7 +82,6 @@ app.post("/api/auth/send-code", async (req, res) => {
   }
 });
 
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
 app.get("/api/readings", async (req, res) => {
   try {
     const { data, error } = await supabase
