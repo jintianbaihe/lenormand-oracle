@@ -4,6 +4,7 @@ import { Smartphone, ShieldCheck, ArrowRight, MessageCircle, Apple, Sparkles } f
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../utils';
+import { apiService } from '../services/apiService';
 
 export const Auth = () => {
   const { t, login } = useAppContext();
@@ -19,21 +20,8 @@ export const Auth = () => {
       return;
     }
     try {
-      const response = await fetch('/api/auth/send-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert(t('codeSent') || 'Code sent!');
-        if (data.demoCode) {
-          console.log("Demo Verification Code:", data.demoCode);
-          setCode(data.demoCode); // 自动填充验证码以便演示
-        }
-      } else {
-        throw new Error(data.error);
-      }
+      await apiService.sendVerificationCode(phone);
+      alert(t('codeSent') || 'Code sent!');
     } catch (error: any) {
       alert(error.message || 'Failed to send code');
     }
