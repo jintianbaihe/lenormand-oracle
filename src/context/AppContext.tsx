@@ -1,9 +1,6 @@
 // 导入 React 核心钩子
 import React, { createContext, useContext, useState, useEffect } from 'react';
-<<<<<<< HEAD
-=======
 import { User } from '../types';
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
 
 // 定义支持的语言类型
 type Language = 'en' | 'cn';
@@ -17,14 +14,11 @@ interface AppContextType {
   theme: Theme; // 当前主题
   toggleTheme: () => void; // 切换主题的方法
   t: (key: string, params?: Record<string, any>) => string; // 国际化翻译函数
-<<<<<<< HEAD
-=======
   user: User | null;
   login: (phone: string, code: string) => Promise<void>;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   isAuthenticated: boolean;
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
 }
 
 // 国际化资源字典
@@ -124,8 +118,6 @@ const translations: Record<Language, Record<string, string>> = {
     spreadHSubtitle: "Bridges & Connections",
     spreadGCTitle: "Grand Cross",
     spreadGCSubtitle: "Universal Synthesis",
-<<<<<<< HEAD
-=======
     login: "Login",
     register: "Register",
     mobileNumber: "Mobile Number",
@@ -143,7 +135,6 @@ const translations: Record<Language, Record<string, string>> = {
     startJourney: "Start Your Journey",
     cardsWaiting: "The cards are waiting",
     codeSent: "Verification code sent!",
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
   },
   cn: {
     // ... 中文翻译条目
@@ -239,8 +230,6 @@ const translations: Record<Language, Record<string, string>> = {
     spreadHSubtitle: "桥梁与连接",
     spreadGCTitle: "大十字",
     spreadGCSubtitle: "宇宙综合",
-<<<<<<< HEAD
-=======
     login: "登录",
     register: "注册",
     mobileNumber: "手机号码",
@@ -258,7 +247,6 @@ const translations: Record<Language, Record<string, string>> = {
     startJourney: "开启你的旅程",
     cardsWaiting: "卡牌正在等待",
     codeSent: "验证码已发送！",
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
   }
 };
 
@@ -274,8 +262,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [language, setLanguage] = useState<Language>('cn');
   // 主题状态，默认为深色 'dark'
   const [theme, setTheme] = useState<Theme>('dark');
-<<<<<<< HEAD
-=======
   // 用户状态
   const [user, setUser] = useState<User | null>(null);
 
@@ -313,18 +299,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const isAuthenticated = !!user;
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
 
   // 副作用：当主题切换时，动态修改 HTML 根元素的 class
-  // 这样 Tailwind 的 dark: 变体类就能根据该 class 自动生效
   useEffect(() => {
-    const root = window.document.documentElement; // 获取 html 元素
+    const root = window.document.documentElement;
     if (theme === 'dark') {
-      root.classList.add('dark'); // 添加 dark 类
+      root.classList.add('dark');
     } else {
-      root.classList.remove('dark'); // 移除 dark 类
+      root.classList.remove('dark');
     }
-  }, [theme]); // 依赖项为 theme
+  }, [theme]);
 
   // 切换主题的便捷方法
   const toggleTheme = () => {
@@ -333,14 +317,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   /**
    * 国际化翻译核心函数
-   * @param key 字典中的键
-   * @param params 模板替换参数，例如 { count: 3 } 会替换字符串中的 {count}
-   * @returns 翻译后的最终字符串
    */
   const t = (key: string, params?: Record<string, any>) => {
-    // 获取对应语言的文本，如果找不到则返回 key 本身
     let text = translations[language][key] || key;
-    // 如果有参数，遍历参数并进行正则替换
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
         text = text.replace(`{${k}}`, v.toString());
@@ -349,16 +328,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return text;
   };
 
-  // 返回 Provider，向下传递所有状态和方法
   return (
-<<<<<<< HEAD
-    <AppContext.Provider value={{ language, setLanguage, theme, toggleTheme, t }}>
-=======
     <AppContext.Provider value={{ 
       language, setLanguage, theme, toggleTheme, t,
       user, login, logout, updateProfile, isAuthenticated
     }}>
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
       {children}
     </AppContext.Provider>
   );
@@ -369,7 +343,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
  */
 export const useAppContext = () => {
   const context = useContext(AppContext);
-  // 如果不在 Provider 内部使用，抛出错误提示
   if (!context) throw new Error('useAppContext must be used within AppProvider');
   return context;
 };
