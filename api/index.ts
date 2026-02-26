@@ -33,7 +33,7 @@ async function sendAliyunSms(phone: string, code: string): Promise<void> {
     SignatureNonce: crypto.randomUUID(),
     SignatureVersion: "1.0",
     TemplateCode: aliyunSmsTemplateCode,
-    TemplateParam: JSON.stringify({ code }),
+    TemplateParam: JSON.stringify{"code":"##code##","min":"5"},
     Timestamp: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
     Version: "2017-05-25",
   };
