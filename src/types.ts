@@ -799,10 +799,7 @@ export const LENORMAND_CARDS: Card[] = [
  */
 export interface Reading {
   id: string;           // 唯一标识符 (通常使用时间戳)
-<<<<<<< HEAD
-=======
   userId?: string;      // 用户 ID
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
   date: string;         // 格式化后的日期字符串
   cards: Card[];        // 抽取的卡牌数组
   interpretation: string; // AI 生成的解读摘要
@@ -811,16 +808,12 @@ export interface Reading {
   reflection?: string;  // 用户填写的个人感悟 (可选)
 }
 
-<<<<<<< HEAD
-=======
 export interface User {
   id: string;
   username: string;
   avatar: string;
   phone?: string;
 }
-
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
 /**
  * 定义 AI 解读结果的 JSON Schema，用于约束 Gemini API 的输出格式
  */
