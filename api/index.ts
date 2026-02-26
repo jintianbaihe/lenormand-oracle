@@ -19,24 +19,46 @@ const aliyunSmsSignName = process.env.ALIBABA_CLOUD_SMS_SIGN_NAME || "";
 const aliyunSmsTemplateCode = process.env.ALIBABA_CLOUD_SMS_TEMPLATE_CODE || "";
 
 /**
- * 使用原生 HTTP + 签名方式调用阿里云 SMS API，完全不依赖 SDK
+ * 使用原生 HTTP + 签名方式调用阿里云 SMS API，支持通信号码认证服务
  */
 async function sendAliyunSms(phone: string, code: string): Promise<void> {
+  // 检查是否是通信号码认证服务（模板代码以 SMS_1 开头）
+  const isPhoneNumberVerification = aliyunSmsTemplateCode.startsWith("SMS_1");
+  
+  // 根据服务类型选择不同的API端点
+  const endpoint = isPhoneNumberVerification 
+    ? "dypnsapi.aliyuncs.com"  // 通信号码认证服务
+    : "dysmsapi.aliyuncs.com"; // 通用短信服务
+    
+  const action = isPhoneNumberVerification 
+    ? "SendSmsVerifyCode"      // 通信号码认证服务API
+    : "SendSms";               // 通用短信服务API
+
   const params: Record<string, string> = {
     AccessKeyId: aliyunAccessKeyId,
-    Action: "SendSms",
+    Action: action,
     Format: "JSON",
-    PhoneNumbers: phone,
+    PhoneNumber: phone,
     RegionId: "cn-hangzhou",
     SignName: aliyunSmsSignName,
     SignatureMethod: "HMAC-SHA1",
     SignatureNonce: crypto.randomUUID(),
     SignatureVersion: "1.0",
     TemplateCode: aliyunSmsTemplateCode,
-    TemplateParam: JSON.stringify({ code: code, min: "5" }),
     Timestamp: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
     Version: "2017-05-25",
   };
+
+  // 根据服务类型添加不同的参数
+  if (isPhoneNumberVerification) {
+    // 通信号码认证服务参数
+    params.Code = code;
+    params.OutId = "lenormand_oracle";
+  } else {
+    // 通用短信服务参数
+    params.PhoneNumbers = phone;
+    params.TemplateParam = JSON.stringify({ code: code, min: "5" });
+  }
 
   // 按字母顺序排序并编码参数
   const sortedKeys = Object.keys(params).sort();
@@ -50,7 +72,7 @@ async function sendAliyunSms(phone: string, code: string): Promise<void> {
     .update(stringToSign)
     .digest("base64");
 
-  const url = `https://dysmsapi.aliyuncs.com/?${canonicalQuery}&Signature=${encodeURIComponent(signature)}`;
+  const url = `https://${endpoint}/?${canonicalQuery}&Signature=${encodeURIComponent(signature)}`;
 
   const response = await fetch(url);
   const result = await response.json();
