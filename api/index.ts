@@ -22,8 +22,11 @@ const aliyunSmsTemplateCode = process.env.ALIBABA_CLOUD_SMS_TEMPLATE_CODE || "";
  * 使用原生 HTTP + 签名方式调用阿里云 SMS API，支持通信号码认证服务
  */
 async function sendAliyunSms(phone: string, code: string): Promise<void> {
-  // 检查是否是通信号码认证服务（模板代码以 SMS_1 开头）
-  const isPhoneNumberVerification = aliyunSmsTemplateCode.startsWith("SMS_1");
+  // 检查是否是通信号码认证服务
+  // 通信号码认证模板通常以 SMS_1 开头，通用短信模板可能是 SMS_15 或纯数字如 100001
+  const isPhoneNumberVerification = aliyunSmsTemplateCode.startsWith("SMS_1") && 
+                                   !aliyunSmsTemplateCode.startsWith("SMS_15") &&
+                                   !/^\d+$/.test(aliyunSmsTemplateCode); // 排除纯数字模板
   
   // 根据服务类型选择不同的API端点
   const endpoint = isPhoneNumberVerification 
@@ -74,8 +77,14 @@ async function sendAliyunSms(phone: string, code: string): Promise<void> {
 
   const url = `https://${endpoint}/?${canonicalQuery}&Signature=${encodeURIComponent(signature)}`;
 
+  console.log(`SMS Service Type: ${isPhoneNumberVerification ? 'Phone Number Verification' : 'General SMS'}`);
+  console.log(`Endpoint: ${endpoint}, Action: ${action}`);
+  console.log(`Template Code: ${aliyunSmsTemplateCode}`);
+
   const response = await fetch(url);
   const result = await response.json();
+
+  console.log(`SMS API Response:`, result);
 
   if (result.Code !== "OK") {
     throw new Error(result.Message || "SMS sending failed");
