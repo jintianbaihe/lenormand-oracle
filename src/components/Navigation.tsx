@@ -1,12 +1,7 @@
 // 导入 React 核心库
 import React from 'react';
-<<<<<<< HEAD
-// 导入路由链接组件
-import { NavLink } from 'react-router-dom';
-=======
 // 导入路由钩子
 import { NavLink, useNavigate } from 'react-router-dom';
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
 // 导入图标库
 import { Sparkles, BookOpen, LayoutGrid, Settings, Sun, Moon, ChevronLeft, History } from 'lucide-react';
 // 导入工具函数
@@ -67,12 +62,8 @@ export const Navbar = () => {
  */
 export const Header = ({ title, subtitle, showBack = false, onBack }: { title?: string, subtitle?: string, showBack?: boolean, onBack?: () => void }) => {
   // 从上下文获取状态和操作方法
-<<<<<<< HEAD
-  const { language, setLanguage, theme, toggleTheme } = useAppContext();
-=======
   const { language, setLanguage, theme, toggleTheme, user } = useAppContext();
   const navigate = useNavigate();
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
 
   return (
     // 容器：弹性布局，两端对齐
@@ -117,15 +108,6 @@ export const Header = ({ title, subtitle, showBack = false, onBack }: { title?: 
         {subtitle && <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-indigo-600 dark:text-indigo-300/80">{subtitle}</p>}
       </div>
 
-<<<<<<< HEAD
-      {/* 右侧用户头像：点击可进入个人设置（暂未实现） */}
-      <button className="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-sm active:scale-95 transition-transform">
-        <img 
-          alt="User Profile" 
-          className="w-full h-full object-cover" 
-          src="https://picsum.photos/seed/user/100/100"
-          referrerPolicy="no-referrer"
-=======
       {/* 右侧用户头像：点击可进入个人设置 */}
       <button 
         onClick={() => navigate('/settings')}
@@ -135,7 +117,6 @@ export const Header = ({ title, subtitle, showBack = false, onBack }: { title?: 
           alt="User Profile" 
           className="w-full h-full object-cover" 
           src={user?.avatar || "https://images.unsplash.com/photo-1515532760646-7d63e925263a?auto=format&fit=crop&q=80&w=200&h=200"}
->>>>>>> 34c53ed (Initial commit: 增加雷诺曼占卜应用及用户系统)
         />
       </button>
     </header>
