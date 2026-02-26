@@ -33,7 +33,7 @@ async function sendAliyunSms(phone: string, code: string): Promise<void> {
     SignatureNonce: crypto.randomUUID(),
     SignatureVersion: "1.0",
     TemplateCode: aliyunSmsTemplateCode,
-    TemplateParam: JSON.stringify{"code":"##code##","min":"5"},
+    TemplateParam: JSON.stringify({ code: code, min: "5" }),
     Timestamp: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
     Version: "2017-05-25",
   };
@@ -53,7 +53,7 @@ async function sendAliyunSms(phone: string, code: string): Promise<void> {
   const url = `https://dysmsapi.aliyuncs.com/?${canonicalQuery}&Signature=${encodeURIComponent(signature)}`;
 
   const response = await fetch(url);
-  const result = await response.json() as any;
+  const result = await response.json();
 
   if (result.Code !== "OK") {
     throw new Error(result.Message || "SMS sending failed");
@@ -89,7 +89,8 @@ app.post("/api/auth/send-code", async (req, res) => {
         demoCode: process.env.NODE_ENV !== 'production' ? code : undefined 
       });
     }
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as Error;
     console.error("SMS Error:", error);
     res.status(500).json({ error: "Failed to send SMS: " + error.message });
   }
@@ -104,7 +105,8 @@ app.get("/api/readings", async (req, res) => {
 
     if (error) throw error;
     res.json(data);
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as Error;
     res.status(500).json({ error: error.message });
   }
 });
@@ -120,7 +122,8 @@ app.get("/api/readings/:id", async (req, res) => {
 
     if (error) throw error;
     res.json(data);
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as Error;
     res.status(500).json({ error: error.message });
   }
 });
@@ -135,7 +138,8 @@ app.post("/api/readings", async (req, res) => {
 
     if (error) throw error;
     res.status(201).json(data[0]);
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as Error;
     res.status(500).json({ error: error.message });
   }
 });
@@ -152,7 +156,8 @@ app.patch("/api/readings/:id", async (req, res) => {
 
     if (error) throw error;
     res.json(data[0]);
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as Error;
     res.status(500).json({ error: error.message });
   }
 });
@@ -167,7 +172,8 @@ app.delete("/api/readings/:id", async (req, res) => {
 
     if (error) throw error;
     res.json({ message: "Successfully deleted" });
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as Error;
     res.status(500).json({ error: error.message });
   }
 });
