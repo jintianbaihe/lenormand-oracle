@@ -31,10 +31,10 @@ console.log('========================');
  */
 async function sendAliyunSms(phone: string, code: string): Promise<void> {
   // 检查是否是通信号码认证服务
-  // 通信号码认证模板通常以 SMS_1 开头，通用短信模板可能是 SMS_15 或纯数字如 100001
-  const isPhoneNumberVerification = aliyunSmsTemplateCode.startsWith("SMS_1") && 
-                                   !aliyunSmsTemplateCode.startsWith("SMS_15") &&
-                                   !/^\d+$/.test(aliyunSmsTemplateCode); // 排除纯数字模板
+  // 根据您提供的SDK示例，模板代码100001是通信号码认证服务
+  const isPhoneNumberVerification = aliyunSmsTemplateCode === "100001" || 
+                                   (aliyunSmsTemplateCode.startsWith("SMS_1") && 
+                                   !aliyunSmsTemplateCode.startsWith("SMS_15"));
   
   // 根据服务类型选择不同的API端点
   const endpoint = isPhoneNumberVerification 
@@ -63,7 +63,8 @@ async function sendAliyunSms(phone: string, code: string): Promise<void> {
   // 根据服务类型添加不同的参数
   if (isPhoneNumberVerification) {
     // 通信号码认证服务参数
-    params.Code = code;
+    params.PhoneNumber = phone;
+    params.TemplateParam = `{"code":"${code}","min":"5"}`;
     params.OutId = "lenormand_oracle";
   } else {
     // 通用短信服务参数
@@ -91,7 +92,9 @@ async function sendAliyunSms(phone: string, code: string): Promise<void> {
   console.log(`Sign Name: ${aliyunSmsSignName}`);
   console.log(`Phone: ${phone}`);
   console.log(`Code: ${code}`);
+  console.log(`AccessKeyId: ${aliyunAccessKeyId.substring(0, 8)}...`); // 只显示前8位
   console.log(`Full URL (without signature): https://${endpoint}/?${canonicalQuery}`);
+  console.log(`All Parameters:`, params);
 
   const response = await fetch(url);
   const result = await response.json();
