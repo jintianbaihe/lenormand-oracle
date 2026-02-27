@@ -62,7 +62,7 @@ const AppContent = () => {
   return (
     <div className="flex flex-col h-[100dvh] w-full overflow-hidden relative bg-midnight">
       <div className="mystic-bg-flow" />
-      <div className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 shadow-2xl shadow-black/50 bg-midnight/40 backdrop-blur-sm md:max-w-lg lg:max-w-xl xl:max-w-2xl">
+      <div className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 shadow-2xl shadow-black/50 bg-midnight/40 backdrop-blur-sm md:max-w-lg lg:max-w-xl xl:max-w-2xl min-h-0">
         {location.pathname !== '/auth' && 
          !location.pathname.startsWith('/preparation/') && 
          !location.pathname.startsWith('/draw/') && 
@@ -75,7 +75,7 @@ const AppContent = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex-1 flex flex-col overflow-y-auto no-scrollbar pb-24"
+            className="flex-1 flex flex-col no-scrollbar pb-24 min-h-0"
           >
             <Routes location={location}>
               <Route path="/auth" element={<Auth />} />

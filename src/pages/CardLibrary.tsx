@@ -74,7 +74,7 @@ export const CardLibrary = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-[#0a0a0a]">
+    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-[#0a0a0a] min-h-0">
       {/* 顶部：搜索框和分类过滤器 */}
       <div className="px-6 pt-2 pb-4 relative z-30">
         <div className="flex flex-col gap-5">
@@ -145,7 +145,7 @@ export const CardLibrary = () => {
       </div>
 
       {/* 主体：卡牌网格列表 - 像素风格 */}
-      <div className="flex-1 overflow-y-auto px-6 pb-32">
+      <div className="flex-1 overflow-y-auto px-6 pb-32 min-h-0">
         <div className="grid grid-cols-3 gap-4">
           {filteredCards.map((card, idx) => (
             <motion.button 

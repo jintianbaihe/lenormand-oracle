@@ -58,7 +58,7 @@ export const JournalDetail = () => {
   if (!reading) return null;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-background-dark">
+    <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-background-dark overflow-y-auto">
       <main className="flex-1 px-6 overflow-y-auto pb-40 no-scrollbar">
         <div className="flex flex-col items-center gap-6 py-4">
           {/* 日期显示 */}

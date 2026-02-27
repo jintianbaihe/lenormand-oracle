@@ -102,7 +102,7 @@ Unlike the mystical background of Tarot, Lenormand was originally a parlor game.
   ];
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-[#0a0a0a]">
+    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-[#0a0a0a] overflow-y-auto">
       <div className="px-6 py-8">
         <div className="flex flex-col gap-6">
           {wikiSections.map((section, idx) => (
