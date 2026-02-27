@@ -107,7 +107,7 @@ export const Journal = () => {
   };
 
   return (
-    <main className="flex-1 px-6 overflow-y-auto pb-32 no-scrollbar">
+    <div className="flex-1 px-6 pb-32">
       <div className="space-y-4 pt-2">
         {/* 如果没有历史记录，显示空状态提示 */}
         {history.length === 0 ? (
@@ -205,6 +205,6 @@ export const Journal = () => {
           ))
         )}
       </div>
-    </main>
+    </div>
   );
 };

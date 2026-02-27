@@ -26,10 +26,10 @@ export const Navbar = () => {
   ];
 
   return (
-    // 容器：固定在底部，设置 z-index 确保在最上层，pointer-events-none 允许点击穿透背景
-    <nav className="fixed bottom-0 left-0 right-0 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] pt-4 px-6 z-40 pointer-events-none">
+    // 容器：绝对定位在底部，设置 z-index 确保在最上层，pointer-events-none 允许点击穿透背景
+    <nav className="absolute bottom-0 left-0 right-0 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] pt-4 px-6 z-40 pointer-events-none">
       {/* 导航栏主体：毛玻璃效果，圆角矩形，居中显示 */}
-      <div className="max-w-sm mx-auto glass-morphism rounded-full p-2 flex justify-between items-center shadow-2xl shadow-black/40 pointer-events-auto">
+      <div className="max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto glass-morphism rounded-full p-2 flex justify-between items-center shadow-2xl shadow-black/40 pointer-events-auto">
         {navItems.map((item) => (
           // 使用 NavLink 自动处理激活状态
           <NavLink
@@ -111,13 +111,21 @@ export const Header = ({ title, subtitle, showBack = false, onBack }: { title?: 
       {/* 右侧用户头像：点击可进入个人设置 */}
       <button 
         onClick={() => navigate('/settings')}
-        className="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-sm active:scale-95 transition-transform"
+        className="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-sm active:scale-95 transition-transform bg-slate-100 dark:bg-white/5"
       >
-        <img 
-          alt="User Profile" 
-          className="w-full h-full object-cover" 
-          src={user?.avatar || "https://images.unsplash.com/photo-1515532760646-7d63e925263a?auto=format&fit=crop&q=80&w=200&h=200"}
-        />
+        {user?.avatar ? (
+          <img 
+            alt="User Profile" 
+            className="w-full h-full object-cover" 
+            src={user.avatar}
+            onError={(e) => {
+              // 如果头像加载失败，显示默认图标
+              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1515532760646-7d63e925263a?auto=format&fit=crop&q=80&w=200&h=200";
+            }}
+          />
+        ) : (
+          <History size={20} className="text-slate-400" />
+        )}
       </button>
     </header>
   );

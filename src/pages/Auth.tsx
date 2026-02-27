@@ -12,12 +12,23 @@ export const Auth = () => {
   const [code, setCode] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   const handleSendCode = async () => {
     if (!phone) {
       alert(t('mobileNumber'));
       return;
     }
+    if (countdown > 0) return;
+
     try {
       const response = await fetch('/api/auth/send-code', {
         method: 'POST',
@@ -27,6 +38,7 @@ export const Auth = () => {
       const data = await response.json();
       if (response.ok) {
         alert(t('codeSent') || 'Code sent!');
+        setCountdown(60);
         if (data.demoCode) {
           console.log("Demo Verification Code:", data.demoCode);
           setCode(data.demoCode); // 自动填充验证码以便演示
@@ -120,9 +132,13 @@ export const Auth = () => {
               <button 
                 type="button"
                 onClick={handleSendCode}
-                className="text-indigo-400 font-semibold text-xs uppercase tracking-wider px-2 hover:opacity-80 transition-opacity whitespace-nowrap"
+                disabled={countdown > 0}
+                className={cn(
+                  "text-indigo-400 font-semibold text-xs uppercase tracking-wider px-2 transition-opacity whitespace-nowrap",
+                  countdown > 0 ? "opacity-50 cursor-not-allowed" : "hover:opacity-80"
+                )}
               >
-                {t('getCode')}
+                {countdown > 0 ? `${countdown}s` : t('getCode')}
               </button>
             </div>
           </div>

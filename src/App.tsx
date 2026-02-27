@@ -31,7 +31,7 @@ const AppContent = () => {
   const getHeaderProps = () => {
     switch (location.pathname) {
       case '/':
-        return {};
+        return { title: t('lenormandOracle'), subtitle: t('dailyInsight') };
       case '/spread':
         return { title: t('chooseSpread'), showBack: true, onBack: () => navigate('/') };
       case '/journal':
@@ -60,39 +60,41 @@ const AppContent = () => {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full overflow-hidden relative">
+    <div className="flex flex-col h-[100dvh] w-full overflow-hidden relative bg-midnight">
       <div className="mystic-bg-flow" />
-      {location.pathname !== '/auth' && 
-       !location.pathname.startsWith('/preparation/') && 
-       !location.pathname.startsWith('/draw/') && 
-       <Header {...getHeaderProps()} />}
-      
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={location.pathname}
-          initial={{ opacity: 0, x: 10 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -10 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="flex-1 flex flex-col overflow-y-auto no-scrollbar"
-        >
-          <Routes location={location}>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<Home />} />
-            <Route path="/spread" element={<SpreadSelection />} />
-            <Route path="/preparation/:count/:type" element={<Preparation />} />
-            <Route path="/draw/:count/:type" element={<DrawCards />} />
-            <Route path="/result" element={<ReadingResult />} />
-            <Route path="/journal" element={<Journal />} />
-            <Route path="/journal/:id" element={<JournalDetail />} />
-            <Route path="/cards" element={<CardLibrary />} />
-            <Route path="/wiki" element={<Wiki />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
-        </motion.div>
-      </AnimatePresence>
+      <div className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 shadow-2xl shadow-black/50 bg-midnight/40 backdrop-blur-sm md:max-w-lg lg:max-w-xl xl:max-w-2xl">
+        {location.pathname !== '/auth' && 
+         !location.pathname.startsWith('/preparation/') && 
+         !location.pathname.startsWith('/draw/') && 
+         <Header {...getHeaderProps()} />}
+        
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="flex-1 flex flex-col overflow-y-auto no-scrollbar pb-24"
+          >
+            <Routes location={location}>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/spread" element={<SpreadSelection />} />
+              <Route path="/preparation/:count/:type" element={<Preparation />} />
+              <Route path="/draw/:count/:type" element={<DrawCards />} />
+              <Route path="/result" element={<ReadingResult />} />
+              <Route path="/journal" element={<Journal />} />
+              <Route path="/journal/:id" element={<JournalDetail />} />
+              <Route path="/cards" element={<CardLibrary />} />
+              <Route path="/wiki" element={<Wiki />} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
 
-      {location.pathname !== '/auth' && <Navbar />}
+        {location.pathname !== '/auth' && <Navbar />}
+      </div>
     </div>
   );
 };

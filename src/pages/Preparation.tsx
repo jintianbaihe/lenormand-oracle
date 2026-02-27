@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 /**
@@ -21,14 +22,6 @@ export const Preparation = () => {
       onClick={() => navigate(`/draw/${count}/${type}`)}
       className="flex-1 flex flex-col items-center justify-center relative overflow-hidden select-none cursor-pointer touch-none"
     >
-      {/* Header */}
-      <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-center px-6 pt-14 pb-4">
-        <div className="text-center">
-          <h2 className="text-[10px] uppercase tracking-[0.4em] font-bold text-gold/60 mb-0.5">Step 01</h2>
-          <p className="font-serif italic text-xl text-white">{t('mindfulPreparation')}</p>
-        </div>
-      </header>
-
       {/* 背景装饰：同心圆动画，模拟呼吸节奏 */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
         <motion.div 
@@ -57,7 +50,7 @@ export const Preparation = () => {
           transition={{ delay: 0.3 }}
           className="space-y-4"
         >
-          <h1 className="font-serif text-4xl text-white font-light tracking-wide">{t('takeDeepBreath')}</h1>
+          <h1 className="font-serif text-4xl text-white font-light tracking-wide text-center">{t('takeDeepBreath').replace('。', '').replace('.', '')}</h1>
           <p className="font-serif italic text-xl text-indigo-100/70">{t('focusOnQuestion')}</p>
         </motion.div>
 
@@ -87,22 +80,6 @@ export const Preparation = () => {
         </motion.div>
       </div>
 
-      {/* 装饰性模糊背景 */}
-      <div className="absolute top-1/3 left-1/4 w-32 h-32 bg-indigo-900/10 rounded-full blur-[80px]"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-purple-900/10 rounded-full blur-[100px]"></div>
-
-      {/* 页脚：进度指示和装饰 */}
-      <footer className="absolute bottom-12 left-0 right-0 flex flex-col items-center gap-6">
-        <div className="flex gap-3">
-          <div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_12px_rgba(129,140,248,0.6)]"></div>
-          <div className="w-2 h-2 rounded-full bg-white/5"></div>
-          <div className="w-2 h-2 rounded-full bg-white/5"></div>
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
-          <span className="text-[10px] font-medium tracking-[0.3em] text-slate-500 uppercase">{t('mindfulPreparation')}</span>
-        </div>
-      </footer>
     </motion.div>
   );
 };

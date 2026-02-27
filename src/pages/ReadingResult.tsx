@@ -179,7 +179,7 @@ export const ReadingResult = () => {
   const titleWords = interpretation?.title?.split(' ') || [];
 
   return (
-    <main className="flex-1 flex flex-col px-6 pt-4 pb-32 max-w-md mx-auto overflow-y-auto no-scrollbar">
+    <main className="flex-1 flex flex-col px-6 pt-4 pb-32 w-full max-w-2xl mx-auto overflow-y-auto no-scrollbar">
       {/* 卡牌展示区域：横向排列抽取的卡牌缩略图 */}
       <div className="flex justify-center flex-wrap gap-3 mb-10 mt-4">
         {cards.map((card, idx) => (
@@ -188,7 +188,7 @@ export const ReadingResult = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.2 }}
-            className="w-20 flex flex-col items-center gap-3"
+            className="w-16 sm:w-20 flex flex-col items-center gap-3"
           >
             {/* 卡牌容器：毛玻璃效果，适配暗色模式 */}
             <div className="aspect-[2/3] w-full glass-morphism rounded-xl flex flex-col items-center justify-between py-3 card-inner-glow relative overflow-hidden group border border-slate-200 dark:border-white/5 dark:bg-slate-900/40">

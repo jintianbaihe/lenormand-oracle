@@ -51,8 +51,8 @@ export const CardLibrary = () => {
                             card.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             card.nameCn.includes(searchQuery) ||
                             card.keyword.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            card.meanings.cn.core.includes(searchQuery) ||
-                            card.meanings.cn.extended.includes(searchQuery);
+                            card.meanings[language].core.includes(searchQuery) ||
+                            card.meanings[language].extended.includes(searchQuery);
       
       // 统一过滤逻辑
       let matchesFilter = true;
@@ -74,15 +74,10 @@ export const CardLibrary = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-[#0a0a0a]">
+    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-[#0a0a0a]">
       {/* 顶部：搜索框和分类过滤器 */}
-      <header className="px-6 pt-6 pb-4 relative z-30">
+      <div className="px-6 pt-2 pb-4 relative z-30">
         <div className="flex flex-col gap-5">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-serif text-slate-900 dark:text-white tracking-widest uppercase opacity-80">Akashic Library</h1>
-            <div className="h-[1px] flex-1 mx-4 bg-slate-200 dark:bg-white/10" />
-            <span className="text-[10px] text-slate-500 font-mono">36 CARDS</span>
-          </div>
 
           {/* 搜索输入框 - 更加极简 */}
           <div className="relative group">
@@ -147,10 +142,10 @@ export const CardLibrary = () => {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* 主体：卡牌网格列表 - 像素风格 */}
-      <main className="flex-1 overflow-y-auto px-6 pb-32 no-scrollbar">
+      <div className="px-6 pb-32">
         <div className="grid grid-cols-3 gap-4">
           {filteredCards.map((card, idx) => (
             <motion.button 
@@ -193,18 +188,18 @@ export const CardLibrary = () => {
             </motion.button>
           ))}
         </div>
-      </main>
+      </div>
 
       {/* 详情弹窗：全屏沉浸式 */}
       <AnimatePresence>
         {selectedCard && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/90 dark:bg-black/90 backdrop-blur-md"
-            onClick={() => setSelectedCard(null)}
-          >
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/90 dark:bg-black/90 backdrop-blur-md"
+              onClick={() => setSelectedCard(null)}
+            >
             <motion.div 
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
