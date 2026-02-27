@@ -81,7 +81,7 @@ const FlyingCard: React.FC<FlyingCardProps> = ({ originX, originY, targetX, targ
 export const DrawCards = () => {
   const { count, type } = useParams();
   const navigate = useNavigate();
-  const { t, language } = useAppContext();
+  const { t, language, user } = useAppContext();
   
   const cardCount = parseInt(count || '1');
   const spreadType = type || '3';
@@ -244,9 +244,25 @@ export const DrawCards = () => {
             {ritualStage === RitualStage.SHUFFLE ? t('shuffle') : t('draw')}
           </p>
         </div>
-        <button className="w-10 h-10 flex items-center justify-center glass-morphism rounded-full">
-          <Sparkles size={20} className="text-slate-400" />
-        </button>
+      {/* 右侧用户头像：点击可进入个人设置 */}
+      <button 
+        onClick={() => navigate('/settings')}
+        className="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-sm active:scale-95 transition-transform bg-slate-100 dark:bg-white/5"
+      >
+        {user?.avatar ? (
+          <img 
+            alt="User Profile" 
+            className="w-full h-full object-cover" 
+            src={user.avatar}
+            onError={(e) => {
+              // 如果头像加载失败，显示默认图标
+              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1515532760646-7d63e925263a?auto=format&fit=crop&q=80&w=200&h=200";
+            }}
+          />
+        ) : (
+          <History size={20} className="text-slate-400" />
+        )}
+      </button>
       </header>
 
       <main className="flex-1 flex flex-col relative z-10 overflow-y-auto no-scrollbar">
