@@ -16,7 +16,7 @@ export const Preparation = () => {
 
 
   return (
-    <div>
+    <div className="h-screen flex flex-col">
       {/* Header */}
       <header className="relative z-50 flex items-center justify-between px-6 pt-14 pb-4">
         <button 
@@ -61,7 +61,7 @@ export const Preparation = () => {
         
         // 点击页面任何地方即可进入正式抽牌流程
         onClick={() => navigate(`/draw/${count}/${type}`)}
-        className="flex-1 flex flex-col items-center justify-center relative overflow-hidden select-none cursor-pointer touch-none"
+        className="flex-1 flex justify-center items-center relative"
       >
         {/* 背景装饰：同心圆动画，模拟呼吸节奏 */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
@@ -83,7 +83,7 @@ export const Preparation = () => {
         </div>
 
         {/* 核心内容区域 */}
-        <div className="relative z-20 flex flex-col items-center text-center px-12 space-y-12">
+        <div className="relative z-20 flex flex-col items-center text-center px-12 space-y-8">
           {/* 引导文字 */}
           <motion.div 
             initial={{ y: 20, opacity: 0 }}
@@ -91,7 +91,7 @@ export const Preparation = () => {
             transition={{ delay: 0.3 }}
             className="space-y-4"
           >
-            <h1 className="font-serif text-4xl text-white font-light tracking-wide text-center">{t('takeDeepBreath').replace('。', '').replace('.', '')}</h1>
+            <h1 className="font-serif text-3xl text-white font-light tracking-wide">{t('takeDeepBreath')}</h1>
             <p className="font-serif italic text-xl text-indigo-100/70">{t('focusOnQuestion')}</p>
           </motion.div>
 
