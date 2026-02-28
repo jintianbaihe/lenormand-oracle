@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Home } from './pages/Home';
+import { QuestionInput } from './pages/QuestionInput';
 import { SpreadSelection } from './pages/SpreadSelection';
 import { DrawCards } from './pages/DrawCards';
 import { Preparation } from './pages/Preparation';
@@ -33,7 +34,9 @@ const AppContent = () => {
       case '/':
         return { title: t('lenormandOracle'), subtitle: t('dailyInsight') };
       case '/spread':
-        return { title: t('chooseSpread'), showBack: true, onBack: () => navigate('/') };
+        return { title: t('chooseSpread'), showBack: true, onBack: () => navigate('/question') };
+      case '/question':
+        return { title: t('defineYourPath'), subtitle: t('preparation'), showBack: true, onBack: () => navigate('/') };
       case '/journal':
         return { title: t('journal') };
       case '/cards':
@@ -80,6 +83,7 @@ const AppContent = () => {
             <Routes location={location}>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<Home />} />
+              <Route path="/question" element={<QuestionInput />} />
               <Route path="/spread" element={<SpreadSelection />} />
               <Route path="/preparation/:count/:type" element={<Preparation />} />
               <Route path="/draw/:count/:type" element={<DrawCards />} />

@@ -50,7 +50,7 @@ export const Home = () => {
         <div className="absolute -inset-0.5 rounded-full divination-btn-outer opacity-50"></div>
         {/* 核心交互按钮：圆形设计，毛玻璃质感 */}
         <button 
-          onClick={() => navigate('/spread')} // 点击跳转到牌阵选择页面
+          onClick={() => navigate('/question')} // 点击跳转到问题输入页面
           className="relative flex flex-col items-center justify-center gap-6 glass-morphism text-white w-52 h-52 rounded-full transition-all duration-500 hover:scale-105 active:scale-95 group overflow-hidden border-white/20"
         >
           {/* 内部渐变背景 */}

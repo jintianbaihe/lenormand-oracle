@@ -59,7 +59,7 @@ export const JournalDetail = () => {
   if (!reading) return null;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-background-dark overflow-y-auto">
+    <div className="flex-1 flex flex-col overflow-hidden overflow-y-auto">
       <main className="flex-1 px-6 overflow-y-auto pb-40 no-scrollbar">
         <div className="flex flex-col items-center gap-6 py-4">
           {/* 日期显示 */}
@@ -95,6 +95,18 @@ export const JournalDetail = () => {
               })}
             </div>
           </div>
+
+          {/* 用户问题展示 */}
+          {reading.question && (
+            <div className="w-full space-y-3">
+              <h3 className="text-[11px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 font-bold px-1">{t('whatIsOnYourMind')}</h3>
+              <div className="glass-morphism p-6 rounded-2xl border-slate-200 dark:border-white/10 dark:bg-slate-900/40 selectable-text">
+                <p className="italic font-serif text-lg leading-relaxed text-slate-700 dark:text-slate-200">
+                  "{reading.question}"
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* AI 解读内容 */}
           <div className="w-full space-y-3">

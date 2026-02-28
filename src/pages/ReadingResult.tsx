@@ -28,9 +28,10 @@ export const ReadingResult = () => {
   // 从全局上下文获取翻译函数和当前语言
   const { t, language } = useAppContext();
   
-  // 从路由状态中获取抽取的卡牌数组和牌阵类型
+  // 从路由状态中获取抽取的卡牌数组、牌阵类型和问题
   const cards = location.state?.cards as Card[];
   const layoutType = location.state?.layoutType as string || '3';
+  const question = location.state?.question as string || '';
   
   // 状态管理：
   // interpretation: 存储 AI 返回的解读 JSON
@@ -117,6 +118,7 @@ export const ReadingResult = () => {
         title: interpretation.title,
         spreadType: cards.length,
         layoutType,
+        question: question || undefined, // 存储用户问题
         reflection: reflection.trim() || undefined // 存储用户感悟
       };
       
@@ -225,6 +227,14 @@ export const ReadingResult = () => {
             i === titleWords.length - 1 ? <i key={i} className="italic">{word}</i> : word + ' '
           )}
         </h2>
+
+        {/* 用户问题展示 */}
+        {question && (
+          <div className="mb-8 p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 text-center">
+            <p className="text-[10px] uppercase tracking-widest text-indigo-600 dark:text-indigo-300/50 mb-2 font-bold">{t('whatIsOnYourMind')}</p>
+            <p className="font-serif italic text-lg text-slate-800 dark:text-slate-200">"{question}"</p>
+          </div>
+        )}
 
         {/* 详细文本：总结和分析 */}
         <div className="space-y-6 text-slate-600 dark:text-slate-300/90 leading-relaxed font-light text-sm">

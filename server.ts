@@ -58,11 +58,20 @@ app.get("/api/readings/:id", async (req, res) => {
  */
 app.post("/api/readings", async (req, res) => {
   try {
-    const { date, title, cards, interpretation, reflection } = req.body;
+    const { date, title, cards, interpretation, reflection, question, spreadType, layoutType } = req.body;
     const { data, error } = await supabase
       .from("readings")
       .insert([
-        { date, title, cards, interpretation, reflection }
+        { 
+          date, 
+          title, 
+          cards, 
+          interpretation, 
+          reflection, 
+          question, 
+          spread_type: spreadType, 
+          layout_type: layoutType 
+        }
       ])
       .select();
 

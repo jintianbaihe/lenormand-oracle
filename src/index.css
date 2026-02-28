@@ -34,26 +34,7 @@ body {
 }
 
 html:not(.dark) body {
-  @apply bg-slate-50 text-slate-900;
-  background: radial-gradient(circle at 50% 0%, #f0f4ff 0%, #ffffff 100%);
-}
-
-html:not(.dark) .glass-morphism {
-  background: rgba(255, 255, 255, 0.7);
-  border-color: rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-html:not(.dark) .text-white {
-  @apply text-slate-900;
-}
-
-html:not(.dark) .text-slate-400 {
-  @apply text-slate-500;
-}
-
-html:not(.dark) .text-slate-300 {
-  @apply text-slate-700;
+  @apply bg-background-dark text-slate-100;
 }
 
 .glass-morphism {

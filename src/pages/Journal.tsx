@@ -227,10 +227,17 @@ export const Journal = () => {
                 );
               })()}
 
-              {/* 底部：AI 解读摘要预览 */}
-              <p className="text-xs leading-relaxed text-slate-400 line-clamp-2 italic font-serif text-base">
-                "{reading.interpretation}"
-              </p>
+              {/* 底部：用户问题和 AI 解读摘要预览 */}
+              <div className="space-y-2">
+                {reading.question && (
+                  <p className="text-[10px] font-bold text-primary/60 uppercase tracking-wider">
+                    Q: {reading.question}
+                  </p>
+                )}
+                <p className="text-xs leading-relaxed text-slate-400 line-clamp-2 italic font-serif text-base">
+                  "{reading.interpretation}"
+                </p>
+              </div>
             </motion.div>
           ))
         )}

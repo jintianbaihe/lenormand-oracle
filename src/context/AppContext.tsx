@@ -4,15 +4,11 @@ import { User } from '../types';
 
 // 定义支持的语言类型
 type Language = 'en' | 'cn';
-// 定义支持的主题类型
-type Theme = 'dark' | 'light';
 
 // 定义 AppContext 的接口，包含状态和操作方法
 interface AppContextType {
   language: Language; // 当前语言
   setLanguage: (lang: Language) => void; // 设置语言的方法
-  theme: Theme; // 当前主题
-  toggleTheme: () => void; // 切换主题的方法
   t: (key: string, params?: Record<string, any>) => string; // 国际化翻译函数
   user: User | null;
   login: (phone: string, code: string) => Promise<void>;
@@ -20,6 +16,8 @@ interface AppContextType {
   logout: () => void;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   isAuthenticated: boolean;
+  question: string;
+  setQuestion: (q: string) => void;
 }
 
 // 国际化资源字典
@@ -150,6 +148,12 @@ const translations: Record<Language, Record<string, string>> = {
     confirmCancelMessage: "Are you sure you want to cancel? The draw results will not be saved.",
     confirmAction: "Confirm",
     cancelAction: "Cancel",
+    defineYourPath: "Define your path",
+    whatIsOnYourMind: "What is on your mind?",
+    questionPlaceholder: "What would you like to ask the cards today?",
+    submitQuestion: "Submit Question",
+    pieceOfGuidance: "A piece of guidance:",
+    guidanceText: "Please ask as specific a question as possible. Lenormand gives direct answers to direct questions. Vague questions get vague interpretations.",
   },
   cn: {
     // ... 中文翻译条目
@@ -276,6 +280,12 @@ const translations: Record<Language, Record<string, string>> = {
     confirmCancelMessage: "是否确认取消，抽牌结果将不会保存",
     confirmAction: "确认",
     cancelAction: "取消",
+    defineYourPath: "定义你的路径",
+    whatIsOnYourMind: "你心中在想什么？",
+    questionPlaceholder: "你今天想问卡牌什么问题？",
+    submitQuestion: "提交问题",
+    pieceOfGuidance: "一点建议：",
+    guidanceText: "请提出尽量准确的问题。雷诺曼对直接的问题给出直接的答案。模糊的问题得到模糊的解读。",
     step01: "第一步",
     step02: "第二步",
     step03: "第三步",
@@ -292,10 +302,10 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 语言状态，默认为中文 'cn'
   const [language, setLanguage] = useState<Language>('cn');
-  // 主题状态，默认为深色 'dark'
-  const [theme, setTheme] = useState<Theme>('dark');
   // 用户状态
   const [user, setUser] = useState<User | null>(null);
+  // 占卜问题状态
+  const [question, setQuestion] = useState<string>('');
 
   // 初始化加载用户信息
   useEffect(() => {
@@ -342,21 +352,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const isAuthenticated = !!user;
 
-  // 副作用：当主题切换时，动态修改 HTML 根元素的 class
-  // 这样 Tailwind 的 dark: 变体类就能根据该 class 自动生效
+  // 副作用：强制应用深色模式
   useEffect(() => {
     const root = window.document.documentElement; // 获取 html 元素
-    if (theme === 'dark') {
-      root.classList.add('dark'); // 添加 dark 类
-    } else {
-      root.classList.remove('dark'); // 移除 dark 类
-    }
-  }, [theme]); // 依赖项为 theme
-
-  // 切换主题的便捷方法
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+    root.classList.add('dark'); // 始终添加 dark 类
+  }, []);
 
   /**
    * 国际化翻译核心函数
@@ -379,8 +379,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 返回 Provider，向下传递所有状态和方法
   return (
     <AppContext.Provider value={{ 
-      language, setLanguage, theme, toggleTheme, t,
-      user, login, guestLogin, logout, updateProfile, isAuthenticated
+      language, setLanguage, t,
+      user, login, guestLogin, logout, updateProfile, isAuthenticated,
+      question, setQuestion
     }}>
       {children}
     </AppContext.Provider>

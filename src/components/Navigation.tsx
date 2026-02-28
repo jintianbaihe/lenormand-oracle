@@ -3,7 +3,7 @@ import React from 'react';
 // 导入路由钩子
 import { NavLink, useNavigate } from 'react-router-dom';
 // 导入图标库
-import { Sparkles, BookOpen, LayoutGrid, Settings, Sun, Moon, ChevronLeft, History } from 'lucide-react';
+import { Sparkles, BookOpen, LayoutGrid, Settings, ChevronLeft, History } from 'lucide-react';
 // 导入工具函数
 import { cn } from '../utils';
 // 导入全局上下文
@@ -62,7 +62,7 @@ export const Navbar = () => {
  */
 export const Header = ({ title, subtitle, showBack = false, onBack }: { title?: string, subtitle?: string, showBack?: boolean, onBack?: () => void }) => {
   // 从上下文获取状态和操作方法
-  const { language, setLanguage, theme, toggleTheme, user } = useAppContext();
+  const { language, setLanguage, user } = useAppContext();
   const navigate = useNavigate();
 
   return (
@@ -87,17 +87,6 @@ export const Header = ({ title, subtitle, showBack = false, onBack }: { title?: 
             <span className={cn(language === 'en' ? "text-primary" : "opacity-40")}>EN</span>
             <span className="opacity-20">|</span>
             <span className={cn(language === 'cn' ? "text-primary" : "opacity-40")}>CN</span>
-          </button>
-        )}
-        
-        {/* 如果不是返回状态，显示主题切换按钮 */}
-        {!showBack && (
-          <button 
-            onClick={toggleTheme}
-            className="w-9 h-9 flex items-center justify-center glass-morphism rounded-full transition-all active:scale-95"
-          >
-            {/* 根据当前主题显示太阳或月亮图标 */}
-            {theme === 'dark' ? <Moon size={16} className="text-indigo-300" /> : <Sun size={16} className="text-amber-500" />}
           </button>
         )}
       </div>

@@ -34,11 +34,11 @@ export const Settings = () => {
   if (!user) return null;
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-[#0a0a0a] pb-32">
+    <div className="flex-1 flex flex-col bg-[#0a0a0a] pb-32">
       <header className="px-6 pt-6 pb-4 flex items-center justify-between">
         <button 
           onClick={() => navigate(-1)}
-          className="p-2 bg-white dark:bg-white/5 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm dark:shadow-none"
+          className="p-2 bg-white/5 rounded-full text-slate-500 hover:text-white transition-all shadow-sm dark:shadow-none"
         >
           <ChevronLeft size={20} />
         </button>
@@ -81,10 +81,10 @@ export const Settings = () => {
               <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold ml-1">
                 {t('username')}
               </label>
-              <div className="glass-morphism rounded-2xl flex items-center px-4 h-14 border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 focus-within:border-indigo-500/40 transition-all shadow-sm dark:shadow-none">
+              <div className="glass-morphism rounded-2xl flex items-center px-4 h-14 border border-white/10 bg-white/5 focus-within:border-indigo-500/40 transition-all shadow-sm dark:shadow-none">
                 <UserIcon className="text-slate-400 mr-3" size={20} />
                 <input 
-                  className="bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 flex-1 text-sm" 
+                  className="bg-transparent border-none focus:ring-0 text-white placeholder:text-slate-500 flex-1 text-sm" 
                   placeholder={t('username')} 
                   type="text"
                   value={username}
@@ -105,7 +105,7 @@ export const Settings = () => {
 
               <button 
                 onClick={handleLogout}
-                className="w-full h-14 rounded-2xl bg-slate-100 dark:bg-white/5 text-rose-500 font-bold flex items-center justify-center gap-2 hover:bg-rose-500/10 active:scale-[0.98] transition-all border border-slate-200 dark:border-white/5"
+                className="w-full h-14 rounded-2xl bg-white/5 text-rose-500 font-bold flex items-center justify-center gap-2 hover:bg-rose-500/10 active:scale-[0.98] transition-all border border-white/5"
               >
                 <LogOut size={20} />
                 {t('logout')}

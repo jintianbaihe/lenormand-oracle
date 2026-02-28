@@ -16,7 +16,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
  * @param language - 目标语言，支持 'en' (英文) 或 'cn' (中文)，默认为 'cn'
  * @returns 返回一个包含标题、总结、详细分析和指引的 JSON 对象
  */
-export async function interpretReading(cards: Card[], language: 'en' | 'cn' = 'cn') {
+export async function interpretReading(cards: Card[], language: 'en' | 'cn' = 'cn', question: string = "") {
   // 1. 准备卡牌信息：将卡牌名称和关键词拼接成字符串，作为 AI 的输入背景
   const cardNames = cards.map(c => `${c.name} (${c.keyword})`).join(", ");
   // 2. 确定提示词语言
@@ -24,6 +24,7 @@ export async function interpretReading(cards: Card[], language: 'en' | 'cn' = 'c
   
   // 3. 构建提示词 (Prompt)：明确告知 AI 它的角色、任务、输入内容以及输出要求
   const prompt = `Interpret this Lenormand card combination for a daily reading: ${cardNames}. 
+  ${question ? `The user's specific question is: "${question}". Please tailor the interpretation to address this question directly.` : ""}
   Provide the response in ${langPrompt}.
   Provide a poetic title, a summary of the energy, a detailed analysis of the interaction between cards, and a short guidance quote.
   The interpretation should be mystic, insightful, and encouraging.`;

@@ -57,7 +57,7 @@ const FlyingCard: React.FC<FlyingCardProps> = ({ originX, originY, targetX, targ
 export const DrawCards = () => {
   const { count, type } = useParams();
   const navigate = useNavigate();
-  const { t, language, user } = useAppContext();
+  const { t, language, user, question } = useAppContext();
   
   const cardCount = parseInt(count || '1');
   const spreadType = type || '3';
@@ -128,7 +128,7 @@ export const DrawCards = () => {
       const deckCY = deckRect.top + deckRect.height / 2;
 
       // 用相同的数学公式计算该牌在扇形展开后的偏移量
-      const cardOffset = getSpreadCardStyle(cardIndex, 20, 1); // progress=1 即完全展开状态
+      const cardOffset = getSpreadCardStyle(cardIndex, 36, 1); // progress=1 即完全展开状态
 
       // 牌的实际屏幕中心坐标
       const cardScreenCX = deckCX + (cardOffset.x as number);
@@ -170,20 +170,20 @@ export const DrawCards = () => {
     setIsInterpreting(true);
     try {
       // Fetch interpretation before navigating to ensure stability
-      const result = await interpretReading(drawnCards.map(dc => dc.card), language);
+      const result = await interpretReading(drawnCards.map(dc => dc.card), language, question);
       
       if (isCancelledRef.current) return;
 
       // Small delay for ritual feel
       navigationTimeoutRef.current = setTimeout(() => {
         if (!isCancelledRef.current) {
-          navigate('/result', { state: { cards: drawnCards.map(dc => dc.card), interpretation: result, layoutType: spreadType } });
+          navigate('/result', { state: { cards: drawnCards.map(dc => dc.card), interpretation: result, layoutType: spreadType, question } });
         }
       }, 800);
     } catch (error) {
       console.error("Failed to fetch interpretation:", error);
       if (!isCancelledRef.current) {
-        navigate('/result', { state: { cards: drawnCards.map(dc => dc.card), layoutType: spreadType } });
+        navigate('/result', { state: { cards: drawnCards.map(dc => dc.card), layoutType: spreadType, question } });
       }
     } finally {
       setIsInterpreting(false);
@@ -203,7 +203,7 @@ export const DrawCards = () => {
   // Calculate card positions in the spread - downward arc
   const getSpreadCardStyle = (index: number, total: number, progress: number) => {
     const radius = 320;
-    const totalAngle = 70;
+    const totalAngle = 110; // Increased angle for 36 cards
     const startAngle = -totalAngle / 2;
     const baseAngle = startAngle + (index / (total - 1)) * totalAngle;
     const angleRad = (baseAngle * Math.PI) / 180;
@@ -308,7 +308,7 @@ export const DrawCards = () => {
                     <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent mx-auto" />
                   </div>
 
-                  <p className="text-sm text-indigo-100/60 leading-relaxed font-light px-2">
+                  <p className="text-sm text-indigo-500/60 dark:text-indigo-100/60 leading-relaxed font-light px-2">
                     {t('confirmCancelMessage')}
                   </p>
 
@@ -427,7 +427,7 @@ export const DrawCards = () => {
             {/* deckContainerRef 挂在这个静止的 div 上，不参与任何 motion 动画，坐标稳定可靠 */}
             <div ref={deckContainerRef} className="relative w-full h-full flex items-center justify-center">
               <AnimatePresence>
-              {shuffledDeck.slice(0, 20).map((card, i) => {
+              {shuffledDeck.map((card, i) => {
                 const isDrawn = drawnCards.some(dc => dc.card.id === card.id);
                 const isHovered = selectedIndex === i;
                 const isFlashing = selectedIndex === i && isSpreadComplete && drawnCards.length < cardCount;
@@ -442,11 +442,11 @@ export const DrawCards = () => {
                       "bg-slate-200 dark:bg-slate-900",
                       isSpreadComplete && isHovered && drawnCards.length < cardCount
                         ? "border-gold/80 shadow-[0_-15px_25px_rgba(212,175,55,0.3),0_0_10px_rgba(212,175,55,0.2)]"
-                        : "border-slate-300 dark:border-gold/20 shadow-indigo-500/5 dark:shadow-black/40",
+                        : "border-slate-300 dark:border-gold/20 shadow-indigo-100/5 dark:shadow-black/40",
                     )}
                     style={{
                       transformOrigin: 'bottom center',
-                      ...getSpreadCardStyle(i, 20, isSpreadComplete ? 1 : 0)
+                      ...getSpreadCardStyle(i, 36, isSpreadComplete ? 1 : 0)
                     }}
                     animate={ritualStage === RitualStage.SHUFFLE ? {
                       x: [0, (i % 2 === 0 ? 40 : -40), 0],
@@ -550,7 +550,7 @@ export const DrawCards = () => {
                   exit={{ opacity: 0 }}
                   className="text-center"
                 >
-                  <p className="font-serif italic text-lg text-indigo-100/70">
+                  <p className="font-serif italic text-lg text-indigo-500/70 dark:text-indigo-100/70">
                     {ritualStage === RitualStage.SHUFFLE
                       ? (shuffleCount < 3 ? t('tapToShuffle') : t('swipeToDraw'))
                       : !isSpreadComplete
