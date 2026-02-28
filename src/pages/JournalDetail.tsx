@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { CheckCircle, Sparkles, Zap, Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame, Bird, Baby, Ghost, Shield, Wind, Building, Palmtree, Mountain, Split, Bug, Heart, CircleDot, Book, Mail, User, Moon, Key, Fish, Anchor, Plus, Flower2 } from 'lucide-react';
 import { Reading } from '../types';
+import { SPREAD_LAYOUTS } from '../constants';
 import { useAppContext } from '../context/AppContext';
 import { cn } from '../utils';
 import { apiService } from '../services/apiService';
@@ -66,24 +67,33 @@ export const JournalDetail = () => {
             <span className="text-[10px] uppercase tracking-[0.3em] text-primary font-bold">{reading.date}</span>
           </div>
 
-          {/* 卡牌展示区域 */}
-          <div className="flex justify-center gap-4 w-full">
-            {reading.cards.map((card, idx) => (
-              <motion.div 
-                key={card.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="flex flex-col items-center gap-2 w-20 py-4 rounded-2xl glass-morphism shadow-[0_4px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_0_12px_rgba(99,102,241,0.3)] border-slate-200 dark:border-primary/20 dark:bg-slate-900/40"
-              >
-                <div className="text-indigo-600 dark:text-indigo-300">
-                  {React.createElement(IconMap[card.icon] || Sparkles, { size: 32, strokeWidth: 1.5 })}
-                </div>
-                <span className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-slate-500 dark:text-slate-100 text-center px-1">
-                  {language === 'cn' ? card.nameCn : card.name}
-                </span>
-              </motion.div>
-            ))}
+          {/* 卡牌展示区域：按照选择的牌阵布局排列 */}
+          {/* 外层控制实际占用高度，内层视觉缩放；每张牌先居中再由 framer-motion x/y 偏移 */}
+          <div className="self-stretch relative" style={{ height: 'calc(380px * 0.6)', marginTop: '1rem', marginBottom: '1.5rem' }}>
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[380px] scale-[0.6] sm:scale-[0.75]">
+              {reading.cards.map((card, idx) => {
+                const layoutKey = String(reading.layoutType ?? reading.cards.length ?? '3');
+                const pos = SPREAD_LAYOUTS[layoutKey]?.[idx] || { x: 0, y: 0 };
+                return (
+                  <motion.div
+                    key={card.id}
+                    initial={{ opacity: 0, scale: 0.5, x: 0, y: 0 }}
+                    animate={{ opacity: 1, scale: 1, x: pos.x, y: pos.y }}
+                    transition={{ delay: idx * 0.1, type: "spring", damping: 20 }}
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80px] h-[120px] glass-morphism rounded-xl flex flex-col items-center justify-between py-4 card-inner-glow shadow-2xl border border-slate-200 dark:border-white/10 dark:bg-slate-900/60"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/10 to-transparent rounded-xl"></div>
+                    <span className="text-[10px] font-bold opacity-30 z-10 text-slate-500 dark:text-slate-100">{card.id.toString().padStart(2, '0')}</span>
+                    <div className="text-indigo-600 dark:text-indigo-300 z-10">
+                      {React.createElement(IconMap[card.icon] || Sparkles, { size: 32, strokeWidth: 1.5 })}
+                    </div>
+                    <span className="text-[8px] uppercase tracking-widest font-bold text-center px-1 z-10 leading-tight text-slate-500 dark:text-slate-100">
+                      {language === 'cn' ? card.nameCn : card.name}
+                    </span>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
 
           {/* AI 解读内容 */}

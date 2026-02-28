@@ -74,7 +74,7 @@ export const CardLibrary = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-[#0a0a0a] min-h-0">
+    <div className="flex-1 flex flex-col min-h-0">
       {/* 顶部：搜索框和分类过滤器 */}
       <div className="px-6 pt-2 pb-4 relative z-30">
         <div className="flex flex-col gap-5">

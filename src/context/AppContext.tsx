@@ -146,6 +146,10 @@ const translations: Record<Language, Record<string, string>> = {
     selectMoreCards: "Select {count} more cards",
     dragAcrossHorizon: "Tap or swipe to shuffle",
     cardsDrawn: "Cards Drawn",
+    confirmCancelTitle: "Confirm Cancel",
+    confirmCancelMessage: "Are you sure you want to cancel? The draw results will not be saved.",
+    confirmAction: "Confirm",
+    cancelAction: "Cancel",
   },
   cn: {
     // ... 中文翻译条目
@@ -268,6 +272,10 @@ const translations: Record<Language, Record<string, string>> = {
     selectMoreCards: "还需抽取 {count} 张牌",
     dragAcrossHorizon: "点击或滑动进行洗牌",
     cardsDrawn: "已抽取卡牌",
+    confirmCancelTitle: "确认取消",
+    confirmCancelMessage: "是否确认取消，抽牌结果将不会保存",
+    confirmAction: "确认",
+    cancelAction: "取消",
     step01: "第一步",
     step02: "第二步",
     step03: "第三步",

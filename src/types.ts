@@ -805,6 +805,7 @@ export interface Reading {
   interpretation: string; // AI 生成的解读摘要
   title: string;        // AI 生成的标题
   spreadType: number;   // 牌阵类型 (抽牌数量)
+  layoutType?: string;  // 牌阵布局类型 (如 '3', '5', '7', '9', 'H', 'GC')
   reflection?: string;  // 用户填写的个人感悟 (可选)
 }
 

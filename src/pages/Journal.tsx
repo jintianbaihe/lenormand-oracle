@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { MoreHorizontal, Sparkles, Zap, Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame, Bird, Baby, Ghost, Shield, Wind, Building, Palmtree, Mountain, Split, Bug, Heart, CircleDot, Book, Mail, User, Moon, Key, Fish, Anchor, Plus, Flower2, Trash2, Share2 } from 'lucide-react';
 // 导入类型定义
 import { Reading } from '../types';
+import { SPREAD_LAYOUTS } from '../constants';
 // 导入工具函数
 import { cn } from '../utils';
 // 导入全局上下文
@@ -185,17 +186,46 @@ export const Journal = () => {
                 </div>
               </div>
 
-              {/* 中部：展示抽取的卡牌缩略图 */}
-              <div className="flex gap-3">
-                {reading.cards.map(card => (
-                  <div key={card.id} className="flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/5 dark:bg-slate-900/40 dark:border-primary/10">
-                    <div className="text-indigo-300">
-                      {React.createElement(IconMap[card.icon] || Sparkles, { size: 20, strokeWidth: 1.5 })}
-                    </div>
-                    <span className="text-[8px] uppercase tracking-widest font-bold opacity-60">{card.name}</span>
+              {/* 中部：按牌阵布局展示卡牌缩略图 */}
+              {(() => {
+                const layoutKey = String(reading.layoutType ?? reading.cards.length ?? '3');
+                const layout = SPREAD_LAYOUTS[layoutKey] || SPREAD_LAYOUTS['3'];
+                // 计算缩略图所需高度：找出 y 坐标范围，缩放比例 0.28
+                const scale = 0.35;
+                const cardW = 80 * scale;  // ~22px
+                const cardH = 120 * scale; // ~34px
+                const ys = layout.slice(0, reading.cards.length).map(p => p.y);
+                const xs = layout.slice(0, reading.cards.length).map(p => p.x);
+                const minY = Math.min(...ys);
+                const maxY = Math.max(...ys);
+                const minX = Math.min(...xs);
+                const maxX = Math.max(...xs);
+                const containerH = (maxY - minY) * scale + cardH + 8;
+                const containerW = (maxX - minX) * scale + cardW + 8;
+                return (
+                  <div className="relative mx-auto" style={{ width: containerW, height: containerH }}>
+                    {reading.cards.map((card, idx) => {
+                      const pos = layout[idx] || { x: 0, y: 0 };
+                      const left = (pos.x - minX) * scale;
+                      const top = (pos.y - minY) * scale;
+                      return (
+                        <div
+                          key={card.id}
+                          className="absolute flex flex-col items-center justify-between py-1 rounded-md bg-white/5 border border-white/10 dark:bg-slate-900/40 dark:border-primary/10"
+                          style={{ width: cardW, height: cardH, left, top }}
+                        >
+                          <div className="text-indigo-300 flex-1 flex items-center justify-center">
+                            {React.createElement(IconMap[card.icon] || Sparkles, { size: 12, strokeWidth: 1.5 })}
+                          </div>
+                          <span className="text-[5px] uppercase tracking-wider font-bold opacity-50 text-center leading-tight px-0.5">
+                            {card.name}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
 
               {/* 底部：AI 解读摘要预览 */}
               <p className="text-xs leading-relaxed text-slate-400 line-clamp-2 italic font-serif text-base">

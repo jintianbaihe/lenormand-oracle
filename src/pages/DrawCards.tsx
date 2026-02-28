@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, Zap, Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame, Bird, Baby, Ghost, Shield, Wind, Heart, Building, Palmtree, Mountain, Split, Bug, CircleDot, Book, Mail, User, Moon, Key, Fish, Anchor, Plus, Flower2, Star, LucideIcon, X, History } from 'lucide-react';
 import { interpretReading } from '../services/geminiService';
 import { LENORMAND_CARDS, Card } from '../types';
+import { SPREAD_LAYOUTS } from '../constants';
 import { cn } from '../utils';
 import { useAppContext } from '../context/AppContext';
 
@@ -15,32 +16,7 @@ enum RitualStage {
   REVEAL = 'REVEAL'
 }
 
-// Layout configurations for different spread types
-const SPREAD_LAYOUTS: Record<string, { x: number, y: number }[]> = {
-  '3': [
-    { x: -100, y: 0 }, { x: 0, y: 0 }, { x: 100, y: 0 }
-  ],
-  '5': [
-    { x: 0, y: -120 }, { x: -100, y: 0 }, { x: 0, y: 0 }, { x: 100, y: 0 }, { x: 0, y: 120 }
-  ],
-  '7': [
-    { x: -150, y: 60 }, { x: -100, y: -40 }, { x: -50, y: -100 }, { x: 0, y: -120 }, { x: 50, y: -100 }, { x: 100, y: -40 }, { x: 150, y: 60 }
-  ],
-  '9': [
-    { x: -100, y: -120 }, { x: 0, y: -120 }, { x: 100, y: -120 },
-    { x: -100, y: 0 }, { x: 0, y: 0 }, { x: 100, y: 0 },
-    { x: -100, y: 120 }, { x: 0, y: 120 }, { x: 100, y: 120 }
-  ],
-  'H': [
-    { x: -100, y: -120 }, { x: 100, y: -120 },
-    { x: -100, y: 0 }, { x: 0, y: 0 }, { x: 100, y: 0 },
-    { x: -100, y: 120 }, { x: 100, y: 120 }
-  ],
-  'GC': [
-    { x: 0, y: -120 }, { x: -100, y: 0 }, { x: 0, y: 0 }, { x: 100, y: 0 }, { x: 0, y: 120 }
-  ]
-};
-
+// Icon mapping
 const IconMap: Record<string, LucideIcon> = {
   Heart, Sparkles, Zap, CircleDot, Mail, User, Moon, Key, Anchor, Plus, Star,
   Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame,
@@ -87,6 +63,7 @@ export const DrawCards = () => {
   const spreadType = type || '3';
   
   const [ritualStage, setRitualStage] = useState<RitualStage>(RitualStage.SHUFFLE);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   // Each drawn card carries its fly-origin (captured synchronously at click time)
   const [drawnCards, setDrawnCards] = useState<{ card: Card; fromX: number; fromY: number }[]>([]);
   const [shuffledDeck, setShuffledDeck] = useState<Card[]>([]);
@@ -104,10 +81,18 @@ export const DrawCards = () => {
   const layoutContainerRef = useRef<HTMLDivElement | null>(null);
   // 牌堆内层容器 ref：用于获取牌堆中心的屏幕坐标（这个 div 不参与动画，坐标稳定）
   const deckContainerRef = useRef<HTMLDivElement | null>(null);
+  const isCancelledRef = useRef(false);
+  const navigationTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     const deck = [...LENORMAND_CARDS].sort(() => Math.random() - 0.5);
     setShuffledDeck(deck);
+
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
   }, []);
 
   const handleShuffleClick = () => {
@@ -187,16 +172,30 @@ export const DrawCards = () => {
       // Fetch interpretation before navigating to ensure stability
       const result = await interpretReading(drawnCards.map(dc => dc.card), language);
       
+      if (isCancelledRef.current) return;
+
       // Small delay for ritual feel
-      setTimeout(() => {
-        navigate('/result', { state: { cards: drawnCards.map(dc => dc.card), interpretation: result } });
+      navigationTimeoutRef.current = setTimeout(() => {
+        if (!isCancelledRef.current) {
+          navigate('/result', { state: { cards: drawnCards.map(dc => dc.card), interpretation: result, layoutType: spreadType } });
+        }
       }, 800);
     } catch (error) {
       console.error("Failed to fetch interpretation:", error);
-      navigate('/result', { state: { cards: drawnCards.map(dc => dc.card) } });
+      if (!isCancelledRef.current) {
+        navigate('/result', { state: { cards: drawnCards.map(dc => dc.card), layoutType: spreadType } });
+      }
     } finally {
       setIsInterpreting(false);
     }
+  };
+
+  const handleConfirmCancel = () => {
+    isCancelledRef.current = true;
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+    }
+    navigate('/spread');
   };
 
   const layout = SPREAD_LAYOUTS[spreadType] || SPREAD_LAYOUTS['3'];
@@ -231,7 +230,7 @@ export const DrawCards = () => {
       {/* Header */}
       <header className="relative z-50 flex items-center justify-between px-6 pt-14 pb-4">
         <button 
-          onClick={() => navigate('/spread')}
+          onClick={() => setShowCancelConfirm(true)}
           className="w-10 h-10 flex items-center justify-center glass-morphism rounded-full active:scale-90 transition-transform"
         >
           <X size={20} className="text-slate-400" />
@@ -265,7 +264,74 @@ export const DrawCards = () => {
       </button>
       </header>
 
+      {/* Guidance Area */}
       <main className="flex-1 flex flex-col relative z-10 overflow-y-auto no-scrollbar">
+        {/* Cancel Confirmation Modal */}
+        <AnimatePresence>
+          {showCancelConfirm && (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowCancelConfirm(false)}
+                className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                className="relative w-full max-w-sm glass-morphism rounded-[2.5rem] p-10 border border-gold/20 bg-midnight/90 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
+              >
+                {/* Mystic Background Glows */}
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-indigo-500/10 blur-[60px] rounded-full" />
+                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gold/5 blur-[60px] rounded-full" />
+                
+                <div className="text-center space-y-6 relative z-10">
+                  {/* Symbolic Icon */}
+                  <div className="relative w-16 h-16 mx-auto mb-2">
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                      className="absolute inset-0 border border-gold/20 rounded-full border-dashed"
+                    />
+                    <div className="absolute inset-2 border border-gold/10 rounded-full" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Sparkles size={28} className="text-gold/80" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-serif italic text-white tracking-wide">
+                      {t('confirmCancelTitle')}
+                    </h3>
+                    <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent mx-auto" />
+                  </div>
+
+                  <p className="text-sm text-indigo-100/60 leading-relaxed font-light px-2">
+                    {t('confirmCancelMessage')}
+                  </p>
+
+                  <div className="flex flex-col gap-3 pt-4">
+                    <button 
+                      onClick={handleConfirmCancel}
+                      className="w-full py-4 rounded-full bg-gold/10 border border-gold/30 text-gold text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-gold/20 active:scale-95 transition-all shadow-[0_0_20px_rgba(212,175,55,0.1)]"
+                    >
+                      {t('confirmAction')}
+                    </button>
+                    <button 
+                      onClick={() => setShowCancelConfirm(false)}
+                      className="w-full py-4 rounded-full text-indigo-300/40 text-[10px] font-bold uppercase tracking-[0.3em] hover:text-indigo-300 transition-colors active:scale-95"
+                    >
+                      {t('cancelAction')}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
         {/* AI 解读加载遮罩 */}
         <AnimatePresence>
           {isInterpreting && (
@@ -273,7 +339,7 @@ export const DrawCards = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-midnight/60 backdrop-blur-sm"
+              className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-midnight/10"
             >
               <motion.div
                 animate={{ rotate: 360 }}
@@ -282,7 +348,7 @@ export const DrawCards = () => {
               >
                 <Sparkles size={40} className="text-gold opacity-80" />
               </motion.div>
-              <p className="text-gold/60 text-[10px] uppercase tracking-[0.4em] font-bold animate-pulse">
+              <p className="text-gold/90 text-[10px] uppercase tracking-[0.4em] font-bold animate-pulse drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 {t('consultingOracle')}
               </p>
             </motion.div>
@@ -290,7 +356,7 @@ export const DrawCards = () => {
         </AnimatePresence>
 
         {/* 牌阵区域：使用相对高度以适应不同屏幕，增加顶部间距 */}
-        <div className="flex-none flex items-center justify-center pt-12 min-h-[220px] h-[30vh] max-h-[300px]">
+        <div className="flex-none flex items-center justify-center pt-16 min-h-[280px] h-[38vh] max-h-[360px]">
           <div ref={layoutContainerRef} className="relative w-full h-full flex items-center justify-center scale-[0.7] sm:scale-85 md:scale-100">
             {/* Empty slot placeholders */}
             {layout.slice(0, cardCount).map((pos, i) => (
@@ -462,7 +528,7 @@ export const DrawCards = () => {
         </div>
 
         {/* 引导词区域：固定在底部，确保在 Navbar 上方 */}
-        <div className="flex-none flex flex-col items-center justify-center pb-2 h-[70px]">
+        <div className="flex-none flex flex-col items-center justify-center pb-2 h-[90px]" >
             <AnimatePresence mode="wait">
               {flippedIndices.length === cardCount && drawnCards.length === cardCount ? (
                 <motion.button

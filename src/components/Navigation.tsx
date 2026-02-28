@@ -27,7 +27,7 @@ export const Navbar = () => {
 
   return (
     // 容器：绝对定位在底部，设置 z-index 确保在最上层，pointer-events-none 允许点击穿透背景
-    <nav className="absolute bottom-0 left-0 right-0 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] pt-4 px-6 z-40 pointer-events-none">
+    <nav className="absolute bottom-0 left-0 right-0 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] pt-4 px-6 z-40 pointer-events-none">
       {/* 导航栏主体：毛玻璃效果，圆角矩形，居中显示 */}
       <div className="max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto glass-morphism rounded-full p-2 flex justify-between items-center shadow-2xl shadow-black/40 pointer-events-auto">
         {navItems.map((item) => (
@@ -51,7 +51,7 @@ export const Navbar = () => {
         ))}
       </div>
       {/* 底部装饰条：模拟移动端系统的 Home 指示条 */}
-      <div className="h-1 w-32 bg-slate-200 dark:bg-white/10 rounded-full mx-auto mt-6" />
+      <div className="h-1 w-32 bg-slate-200 dark:bg-white/10 rounded-full mx-auto mt-2" />
     </nav>
   );
 };

@@ -27,24 +27,26 @@ const SpreadIcon = ({ type }: { type: string }) => {
           <DiagramDot />
         </div>
       );
-    case '5': // 五张牌阵：十字排列
+    case '5': // 五张牌阵：线性排列
       return (
-        <div className="grid grid-cols-3 grid-rows-3 gap-1 scale-90">
-          <div /><DiagramDot /><div />
-          <DiagramDot /><DiagramDot /><DiagramDot />
-          <div /><DiagramDot /><div />
+        <div className="flex gap-1">
+          <DiagramDot />
+          <DiagramDot />
+          <DiagramDot />
+          <DiagramDot />
+          <DiagramDot />
         </div>
       );
-    case '7': // 七张牌阵：圆弧排列
+    case '7': // 七张牌阵：线性排列
       return (
-        <div className="relative w-8 h-8 flex items-center justify-center scale-75">
-          <div className="absolute top-0"><DiagramDot /></div>
-          <div className="absolute bottom-0"><DiagramDot /></div>
-          <div className="absolute left-0"><DiagramDot /></div>
-          <div className="absolute right-0"><DiagramDot /></div>
-          <div className="absolute top-1.5 left-1.5"><DiagramDot /></div>
-          <div className="absolute top-1.5 right-1.5"><DiagramDot /></div>
-          <div className="absolute -bottom-1"><DiagramDot /></div>
+        <div className="flex gap-1 scale-90">
+          <DiagramDot />
+          <DiagramDot />
+          <DiagramDot />
+          <DiagramDot />
+          <DiagramDot />
+          <DiagramDot />
+          <DiagramDot />
         </div>
       );
     case '9': // 九张牌阵：3x3 方阵

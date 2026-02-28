@@ -75,7 +75,7 @@ const AppContent = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex-1 flex flex-col no-scrollbar pb-24 min-h-0"
+            className="flex-1 flex flex-col no-scrollbar pb-20 min-h-0"
           >
             <Routes location={location}>
               <Route path="/auth" element={<Auth />} />
