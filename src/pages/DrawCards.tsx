@@ -430,7 +430,7 @@ export const DrawCards = () => {
               {shuffledDeck.slice(0, 20).map((card, i) => {
                 const isDrawn = drawnCards.some(dc => dc.card.id === card.id);
                 const isHovered = selectedIndex === i;
-                const isFlashing = selectedIndex === i && isSpreadComplete;
+                const isFlashing = selectedIndex === i && isSpreadComplete && drawnCards.length < cardCount;
                 if (isDrawn) return null;
                 
                 return (
@@ -440,7 +440,7 @@ export const DrawCards = () => {
                     className={cn(
                       "absolute w-[56px] h-[88px] rounded-md border shadow-2xl transition-[border-color,box-shadow] duration-200",
                       "bg-slate-200 dark:bg-slate-900",
-                      isSpreadComplete && isHovered
+                      isSpreadComplete && isHovered && drawnCards.length < cardCount
                         ? "border-gold/80 shadow-[0_-15px_25px_rgba(212,175,55,0.3),0_0_10px_rgba(212,175,55,0.2)]"
                         : "border-slate-300 dark:border-gold/20 shadow-indigo-500/5 dark:shadow-black/40",
                     )}
@@ -459,7 +459,7 @@ export const DrawCards = () => {
                       if (ritualStage === RitualStage.SHUFFLE) {
                         // 洗牌阶段：触发洗牌动画
                         handleShuffleClick();
-                      } else if (isSpreadComplete) {
+                      } else if (isSpreadComplete && drawnCards.length < cardCount) {
                         // 抽牌阶段：
                         // 1. 立即触发金光效果（视觉反馈）
                         // 2. 立即调用 handleDraw 传入当前牌的索引
