@@ -322,12 +322,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const login = async (phone: string, code: string) => {
     try {
+      // 登录前先清除可能残留的旧用户缓存，确保状态干净
+      localStorage.removeItem('lenormand_user');
       const userData = await apiService.login(phone, code);
       setUser(userData);
       localStorage.setItem('lenormand_user', JSON.stringify(userData));
     } catch (error) {
       console.error('Login failed:', error);
-      throw error;
+      throw error; // 抛出给 Auth.tsx 处理错误提示
     }
   };
 

@@ -22,10 +22,14 @@ const AppContent = () => {
   const navigate = useNavigate();
   const { t, isAuthenticated } = useAppContext();
 
-  // 路由守卫：未登录且不在登录页时跳转
+  // 路由守卫（双向）
   React.useEffect(() => {
     if (!isAuthenticated && location.pathname !== '/auth') {
+      // 未登录：强制跳到登录页
       navigate('/auth');
+    } else if (isAuthenticated && location.pathname === '/auth') {
+      // 已登录：禁止停留在登录页，跳回首页
+      navigate('/');
     }
   }, [isAuthenticated, location.pathname, navigate]);
 
