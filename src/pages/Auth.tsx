@@ -16,6 +16,7 @@ export const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [codeError, setCodeError] = useState(false);
 
   React.useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -41,7 +42,7 @@ export const Auth = () => {
         setCode(data.demoCode); // 自动填充验证码以便演示
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to send code');
+      setError(err.message || '验证码发送失败，请稍后重试');
     }
   };
 
@@ -51,19 +52,32 @@ export const Auth = () => {
       setError(t('agreeTerms'));
       return;
     }
-    if (!phone || !code) {
+    if (!phone) {
+      setError(t('mobileNumber'));
+      return;
+    }
+    if (!code) {
+      setCodeError(true);
       setError(t('invalidCode'));
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setCodeError(false);
     try {
       await login(phone, code);
-      navigate('/');
+      navigate('/'); // 验证码正确才跳转
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || t('invalidCode'));
+      // 后端 401 时固定返回 "Verification code is incorrect. Please try again."
+      const msg: string = err.message || '';
+      if (msg.includes('Verification code is incorrect')) {
+        setCodeError(true);
+        setCode(''); // 清空，引导重新输入
+        setError('验证码错误，请检查后重试');
+      } else {
+        setError(msg || t('invalidCode'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +141,7 @@ export const Auth = () => {
             {/* Code Input */}
             <div className={cn(
               "glass-morphism rounded-2xl flex items-center px-4 h-14 border transition-all",
-              error && !code && phone ? "border-rose-500/50" : "border-white/10 focus-within:border-indigo-500/40"
+              codeError ? "border-rose-500/50" : "border-white/10 focus-within:border-indigo-500/40"
             )}>
               <ShieldCheck className="text-slate-400 mr-3" size={20} />
               <input 
@@ -138,6 +152,7 @@ export const Auth = () => {
                 onChange={(e) => {
                   setCode(e.target.value);
                   setError(null);
+                  setCodeError(false);
                 }}
               />
               <button 
