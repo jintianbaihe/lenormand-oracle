@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Smartphone, ShieldCheck, ArrowRight, MessageCircle, Apple, Sparkles } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ export const Auth = () => {
   const [agreed, setAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   React.useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -26,38 +27,43 @@ export const Auth = () => {
 
   const handleSendCode = async () => {
     if (!phone) {
-      alert(t('mobileNumber'));
+      setError(t('mobileNumber'));
       return;
     }
+    setError(null);
     if (countdown > 0) return;
 
     try {
       const data = await apiService.sendCode(phone);
-      alert(t('codeSent') || 'Code sent!');
       setCountdown(60);
       if (data.demoCode) {
         console.log("Demo Verification Code:", data.demoCode);
         setCode(data.demoCode); // 自动填充验证码以便演示
       }
-    } catch (error: any) {
-      alert(error.message || 'Failed to send code');
+    } catch (err: any) {
+      setError(err.message || 'Failed to send code');
     }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreed) {
-      alert(t('agreeTerms'));
+      setError(t('agreeTerms'));
       return;
     }
-    if (!phone || !code) return;
+    if (!phone || !code) {
+      setError(t('invalidCode'));
+      return;
+    }
 
     setIsLoading(true);
+    setError(null);
     try {
       await login(phone, code);
       navigate('/');
-    } catch (error) {
-      console.error(error);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || t('invalidCode'));
     } finally {
       setIsLoading(false);
     }
@@ -101,26 +107,38 @@ export const Auth = () => {
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-4">
             {/* Mobile Input */}
-            <div className="glass-morphism rounded-2xl flex items-center px-4 h-14 border border-white/10 focus-within:border-indigo-500/40 transition-all">
+            <div className={cn(
+              "glass-morphism rounded-2xl flex items-center px-4 h-14 border transition-all",
+              error && !phone ? "border-rose-500/50" : "border-white/10 focus-within:border-indigo-500/40"
+            )}>
               <Smartphone className="text-slate-400 mr-3" size={20} />
               <input 
                 className="bg-transparent border-none focus:ring-0 text-white placeholder:text-slate-500 flex-1 text-sm" 
                 placeholder={t('mobileNumber')} 
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  setError(null);
+                }}
               />
             </div>
 
             {/* Code Input */}
-            <div className="glass-morphism rounded-2xl flex items-center px-4 h-14 border border-white/10 focus-within:border-indigo-500/40 transition-all">
+            <div className={cn(
+              "glass-morphism rounded-2xl flex items-center px-4 h-14 border transition-all",
+              error && !code && phone ? "border-rose-500/50" : "border-white/10 focus-within:border-indigo-500/40"
+            )}>
               <ShieldCheck className="text-slate-400 mr-3" size={20} />
               <input 
                 className="bg-transparent border-none focus:ring-0 text-white placeholder:text-slate-500 flex-1 text-sm" 
                 placeholder={t('verificationCode')} 
                 type="text"
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
+                onChange={(e) => {
+                  setCode(e.target.value);
+                  setError(null);
+                }}
               />
               <button 
                 type="button"
@@ -137,19 +155,43 @@ export const Auth = () => {
           </div>
 
           {/* Terms Agreement */}
-          <label className="flex items-center gap-3 px-1 cursor-pointer group">
-            <div className="relative flex items-center">
-              <input 
-                type="checkbox" 
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-                className="w-5 h-5 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-0 focus:ring-offset-0 transition-all checked:shadow-[0_0_10px_rgba(99,102,241,0.6)]"
-              />
-            </div>
-            <span className="text-xs text-slate-400 leading-tight">
-              {t('agreeTerms')}
-            </span>
-          </label>
+          <div className="space-y-4">
+            <label className="flex items-center gap-3 px-1 cursor-pointer group">
+              <div className="relative flex items-center">
+                <input 
+                  type="checkbox" 
+                  checked={agreed}
+                  onChange={(e) => {
+                    setAgreed(e.target.checked);
+                    setError(null);
+                  }}
+                  className={cn(
+                    "w-5 h-5 rounded border bg-white/5 text-indigo-500 focus:ring-0 focus:ring-offset-0 transition-all checked:shadow-[0_0_10px_rgba(99,102,241,0.6)]",
+                    error && !agreed ? "border-rose-500/50" : "border-white/10"
+                  )}
+                />
+              </div>
+              <span className="text-xs text-slate-400 leading-tight">
+                {t('agreeTerms')}
+              </span>
+            </label>
+
+            {/* Error Message */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="px-1"
+                >
+                  <p className="text-rose-400 text-[10px] font-bold uppercase tracking-widest animate-pulse">
+                    {error}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Submit Button */}
           <button 

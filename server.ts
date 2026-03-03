@@ -37,6 +37,10 @@ const checkSupabase = (res: any) => {
 
 // API Routes
 
+// In-memory storage for verification codes (phone -> code)
+// In a production app, use Redis or a database with TTL
+const verificationCodes = new Map<string, string>();
+
 /**
  * 发送验证码
  */
@@ -48,6 +52,9 @@ app.post("/api/auth/send-code", async (req, res) => {
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   console.log(`Verification code for ${phone}: ${code}`);
+
+  // Store the code for verification
+  verificationCodes.set(phone, code);
 
   // In a real app, you'd call an SMS service here
   res.json({ 
@@ -65,6 +72,15 @@ app.post("/api/auth/login", async (req, res) => {
   if (!phone || !code) {
     return res.status(400).json({ error: "Phone and code are required" });
   }
+
+  // Verify the code
+  const storedCode = verificationCodes.get(phone);
+  if (!storedCode || storedCode !== code) {
+    return res.status(401).json({ error: "Verification code is incorrect. Please try again." });
+  }
+
+  // Code is correct, remove it from storage
+  verificationCodes.delete(phone);
 
   try {
     let { data: profile, error } = await supabase
