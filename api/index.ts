@@ -107,7 +107,7 @@ app.get("/api/health", (req, res) => {
 });
 
 /**
- * 发送短信验证码
+ * 发送短信验证码，并将验证码持久化到 Supabase
  */
 app.post("/api/auth/send-code", async (req, res) => {
   const { phone } = req.body;
@@ -115,18 +115,27 @@ app.post("/api/auth/send-code", async (req, res) => {
     return res.status(400).json({ error: "Phone number is required" });
   }
 
-  // In a real app, you'd store this code in a database or Redis with an expiration
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  console.log(`Verification code for ${phone}: ${code}`);
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10分钟有效期
 
   try {
+    // 持久化到 Supabase（同一手机号覆盖旧验证码）
+    const { error: upsertError } = await supabase
+      .from("verification_codes")
+      .upsert({ phone, code, expires_at: expiresAt }, { onConflict: "phone" });
+
+    if (upsertError) {
+      console.error("Supabase upsert error:", upsertError);
+      return res.status(500).json({ error: "Failed to store verification code" });
+    }
+
     if (aliyunAccessKeyId && aliyunAccessKeySecret && aliyunSmsSignName && aliyunSmsTemplateCode) {
       await sendAliyunSms(phone, code);
       res.json({ message: "Code sent successfully" });
     } else {
-      res.json({ 
+      res.json({
         message: "Alibaba Cloud SMS not configured. Code printed to server logs.",
-        demoCode: code 
+        demoCode: code
       });
     }
   } catch (err) {
@@ -145,9 +154,32 @@ app.post("/api/auth/login", async (req, res) => {
     return res.status(400).json({ error: "Phone and code are required" });
   }
 
-  // 简化验证逻辑：由于没有持久化存储验证码，这里假设验证码正确
-  // 在实际生产环境中，您需要从数据库/Redis中验证 code
   try {
+    // 从 Supabase 查询验证码
+    const { data: record, error: fetchError } = await supabase
+      .from("verification_codes")
+      .select("code, expires_at")
+      .eq("phone", phone)
+      .single();
+
+    if (fetchError || !record) {
+      return res.status(401).json({ error: "Verification code is incorrect. Please try again." });
+    }
+
+    // 检查是否过期
+    if (new Date() > new Date(record.expires_at)) {
+      await supabase.from("verification_codes").delete().eq("phone", phone);
+      return res.status(401).json({ error: "Verification code has expired. Please request a new one." });
+    }
+
+    // 校验验证码
+    if (record.code !== code) {
+      return res.status(401).json({ error: "Verification code is incorrect. Please try again." });
+    }
+
+    // 验证通过，删除已使用的验证码（一次性）
+    await supabase.from("verification_codes").delete().eq("phone", phone);
+
     // 查找或创建用户
     let { data: profile, error } = await supabase
       .from("profiles")
@@ -159,8 +191,8 @@ app.post("/api/auth/login", async (req, res) => {
       // 用户不存在，创建新用户
       const { data: newProfile, error: createError } = await supabase
         .from("profiles")
-        .insert([{ 
-          phone, 
+        .insert([{
+          phone,
           username: `User_${phone.slice(-4)}`,
           avatar: `https://api.dicebear.com/7.x/shapes/svg?seed=${phone}&backgroundColor=0a0a1a`
         }])
