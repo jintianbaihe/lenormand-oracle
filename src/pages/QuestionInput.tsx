@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { cn } from '../utils';
 
 /**
  * QuestionInput 组件：用户输入占卜问题的界面
@@ -12,8 +13,14 @@ export const QuestionInput = () => {
   const navigate = useNavigate();
   const { t, setQuestion, question: globalQuestion } = useAppContext();
   const [localQuestion, setLocalQuestion] = useState(globalQuestion);
+  const [showError, setShowError] = useState(false);
 
   const handleSubmit = () => {
+    if (!localQuestion.trim()) {
+      setShowError(true);
+      return;
+    }
+    setShowError(false);
     setQuestion(localQuestion);
     navigate('/spread');
   };
@@ -39,8 +46,14 @@ export const QuestionInput = () => {
           <div className="relative group">
             <textarea 
               value={localQuestion}
-              onChange={(e) => setLocalQuestion(e.target.value)}
-              className="w-full h-48 p-6 rounded-3xl glass-morphism text-lg font-serif text-slate-900 dark:text-slate-200 resize-none leading-relaxed focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all bg-white/40 dark:bg-white/5"
+              onChange={(e) => {
+                setLocalQuestion(e.target.value);
+                if (e.target.value.trim()) setShowError(false);
+              }}
+              className={cn(
+                "w-full h-48 p-6 rounded-3xl glass-morphism text-lg font-serif text-slate-900 dark:text-slate-200 resize-none leading-relaxed focus:outline-none transition-all bg-white/40 dark:bg-white/5",
+                showError ? "ring-1 ring-rose-500/50 border-rose-500/30" : "focus:ring-1 focus:ring-primary/30"
+              )}
               placeholder={t('questionPlaceholder')}
             ></textarea>
             
@@ -50,16 +63,32 @@ export const QuestionInput = () => {
           </div>
         </div>
 
-        {/* 提交按钮 */}
-        <button 
-          onClick={handleSubmit}
-          className="w-full py-5 rounded-2xl glow-button transition-all group overflow-hidden relative bg-primary/10 border border-primary/30 shadow-[0_0_15px_rgba(99,102,241,0.4)] active:scale-[0.98]"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-          <span className="font-sans font-medium tracking-[0.2em] text-indigo-600 dark:text-indigo-100 uppercase text-sm">
-            {t('submitQuestion')}
-          </span>
-        </button>
+        {/* 提交按钮区域 */}
+        <div className="w-full space-y-4">
+          <button 
+            onClick={handleSubmit}
+            className="w-full py-5 rounded-2xl glow-button transition-all group overflow-hidden relative bg-primary/10 border border-primary/30 shadow-[0_0_15px_rgba(99,102,241,0.4)] active:scale-[0.98]"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            <span className="font-sans font-medium tracking-[0.2em] text-indigo-600 dark:text-indigo-100 uppercase text-sm">
+              {t('submitQuestion')}
+            </span>
+          </button>
+
+          {/* 错误提示词 */}
+          <AnimatePresence>
+            {showError && (
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="text-center text-rose-400 text-xs font-medium tracking-wide animate-pulse"
+              >
+                {t('pleaseEnterQuestion')}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* 建议区域 */}
         <div className="w-full px-4 pt-4 flex flex-col items-center">

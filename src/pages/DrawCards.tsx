@@ -54,6 +54,110 @@ const FlyingCard: React.FC<FlyingCardProps> = ({ originX, originY, targetX, targ
   );
 };
 
+// DeckCard: follows drag progress in real-time
+interface DeckCardProps {
+  card: Card;
+  index: number;
+  total: number;
+  spreadProgress: any;
+  isSpreadComplete: boolean;
+  drawnCards: any[];
+  cardCount: number;
+  selectedIndex: number | null;
+  onDraw: (card: Card, index: number) => void;
+  onSelect: (index: number | null) => void;
+  ritualStage: RitualStage;
+  shuffleKey: number;
+  handleShuffleClick: () => void;
+}
+
+const DeckCard: React.FC<DeckCardProps> = ({ 
+  card, index, total, spreadProgress, isSpreadComplete, drawnCards, 
+  cardCount, selectedIndex, onDraw, onSelect, ritualStage, shuffleKey, handleShuffleClick 
+}) => {
+  const radius = 320;
+  const totalAngle = 95; 
+  const startAngle = -totalAngle / 2;
+  const baseAngle = startAngle + (index / (total - 1)) * totalAngle;
+  const angleRad = (baseAngle * Math.PI) / 180;
+
+  const targetX = radius * Math.sin(angleRad);
+  const targetY = (radius - radius * Math.cos(angleRad));
+  const targetRotate = baseAngle;
+
+  // Real-time animation values tied to spreadProgress
+  const x = useTransform(spreadProgress, [0, 1], [0, targetX]);
+  const y = useTransform(spreadProgress, [0, 1], [0, targetY]);
+  const rotate = useTransform(spreadProgress, [0, 1], [0, targetRotate]);
+
+  const isDrawn = drawnCards.some(dc => dc.card.id === card.id);
+  const isHovered = selectedIndex === index;
+  const isFlashing = selectedIndex === index && isSpreadComplete && drawnCards.length < cardCount;
+
+  if (isDrawn) return null;
+
+  return (
+    <motion.div
+      key={`${card.id}-${shuffleKey}`}
+      style={{
+        x,
+        y,
+        rotate,
+        zIndex: 10 + index,
+        transformOrigin: 'bottom center',
+      }}
+      exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
+      className={cn(
+        "absolute w-[56px] h-[88px] rounded-md border shadow-2xl transition-[border-color,box-shadow] duration-200",
+        "bg-slate-200 dark:bg-slate-900",
+        isSpreadComplete && isHovered && drawnCards.length < cardCount
+          ? "border-gold/80 shadow-[0_-15px_25px_rgba(212,175,55,0.3),0_0_10px_rgba(212,175,55,0.2)]"
+          : "border-slate-300 dark:border-gold/20 shadow-indigo-100/5 dark:shadow-black/40",
+      )}
+      animate={ritualStage === RitualStage.SHUFFLE ? {
+        x: [0, (index % 2 === 0 ? 40 : -40), 0],
+        y: [0, (index % 3 === 0 ? -10 : 10), 0],
+        rotate: [0, (index % 2 === 0 ? 15 : -15), 0],
+        scale: [1, 1.05, 1],
+        transition: { duration: 0.4, ease: "easeInOut" }
+      } : {}}
+      onClick={() => {
+        if (ritualStage === RitualStage.SHUFFLE) {
+          handleShuffleClick();
+        } else if (isSpreadComplete && drawnCards.length < cardCount) {
+          onSelect(index);
+          onDraw(card, index);
+        }
+      }}
+      onMouseEnter={() => isSpreadComplete && drawnCards.length < cardCount && onSelect(index)}
+      onMouseLeave={() => onSelect(null)}
+      onTouchStart={() => isSpreadComplete && drawnCards.length < cardCount && onSelect(index)}
+    >
+      <div className="w-full h-full border border-slate-300/10 dark:border-white/5 rounded-sm flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
+        <div className="w-4 h-4 rounded-full border border-slate-400/20 dark:border-gold/20 opacity-20 flex items-center justify-center">
+          <span className="text-[8px] text-slate-400 dark:text-gold/40">✧</span>
+        </div>
+        <AnimatePresence>
+          {isFlashing && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.4 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.6 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="absolute inset-0 rounded-md pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle at center, rgba(212,175,55,0.85) 0%, rgba(212,175,55,0.4) 45%, transparent 75%)',
+                boxShadow: '0 0 24px 8px rgba(212,175,55,0.5), inset 0 0 16px rgba(212,175,55,0.3)',
+              }}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+};
+
 export const DrawCards = () => {
   const { count, type } = useParams();
   const navigate = useNavigate();
@@ -203,7 +307,7 @@ export const DrawCards = () => {
   // Calculate card positions in the spread - downward arc
   const getSpreadCardStyle = (index: number, total: number, progress: number) => {
     const radius = 320;
-    const totalAngle = 110; // Increased angle for 36 cards
+    const totalAngle = 95; 
     const startAngle = -totalAngle / 2;
     const baseAngle = startAngle + (index / (total - 1)) * totalAngle;
     const angleRad = (baseAngle * Math.PI) / 180;
@@ -357,7 +461,7 @@ export const DrawCards = () => {
 
         {/* 牌阵区域：使用相对高度以适应不同屏幕，增加顶部间距 */}
         <div className="flex-none flex items-center justify-center pt-16 min-h-[280px] h-[38vh] max-h-[360px]">
-          <div ref={layoutContainerRef} className="relative w-full h-full flex items-center justify-center scale-[0.7] sm:scale-85 md:scale-100">
+          <div ref={layoutContainerRef} className="relative w-full h-full flex items-center justify-center scale-[0.55] min-[380px]:scale-[0.65] sm:scale-85 md:scale-100">
             {/* Empty slot placeholders */}
             {layout.slice(0, cardCount).map((pos, i) => (
               <div
@@ -427,100 +531,47 @@ export const DrawCards = () => {
             {/* deckContainerRef 挂在这个静止的 div 上，不参与任何 motion 动画，坐标稳定可靠 */}
             <div ref={deckContainerRef} className="relative w-full h-full flex items-center justify-center">
               <AnimatePresence>
-              {shuffledDeck.map((card, i) => {
-                const isDrawn = drawnCards.some(dc => dc.card.id === card.id);
-                const isHovered = selectedIndex === i;
-                const isFlashing = selectedIndex === i && isSpreadComplete && drawnCards.length < cardCount;
-                if (isDrawn) return null;
-                
-                return (
-                  <motion.div
-                    key={`${card.id}-${shuffleKey}`}
-                    exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
-                    className={cn(
-                      "absolute w-[56px] h-[88px] rounded-md border shadow-2xl transition-[border-color,box-shadow] duration-200",
-                      "bg-slate-200 dark:bg-slate-900",
-                      isSpreadComplete && isHovered && drawnCards.length < cardCount
-                        ? "border-gold/80 shadow-[0_-15px_25px_rgba(212,175,55,0.3),0_0_10px_rgba(212,175,55,0.2)]"
-                        : "border-slate-300 dark:border-gold/20 shadow-indigo-100/5 dark:shadow-black/40",
-                    )}
-                    style={{
-                      transformOrigin: 'bottom center',
-                      ...getSpreadCardStyle(i, 36, isSpreadComplete ? 1 : 0)
-                    }}
-                    animate={ritualStage === RitualStage.SHUFFLE ? {
-                      x: [0, (i % 2 === 0 ? 40 : -40), 0],
-                      y: [0, (i % 3 === 0 ? -10 : 10), 0],
-                      rotate: [0, (i % 2 === 0 ? 15 : -15), 0],
-                      scale: [1, 1.05, 1],
-                      transition: { duration: 0.4, ease: "easeInOut" }
-                    } : {}}
-                    onClick={() => {
-                      if (ritualStage === RitualStage.SHUFFLE) {
-                        // 洗牌阶段：触发洗牌动画
-                        handleShuffleClick();
-                      } else if (isSpreadComplete && drawnCards.length < cardCount) {
-                        // 抽牌阶段：
-                        // 1. 立即触发金光效果（视觉反馈）
-                        // 2. 立即调用 handleDraw 传入当前牌的索引
-                        //    必须在点击时立即执行，此时 DOM 位置最稳定
-                        //    不能用 setTimeout 延迟，否则牌堆可能已经重渲染
-                        setSelectedIndex(i);
-                        handleDraw(card, i);
-                      }
-                    }}
-                    onMouseEnter={() => isSpreadComplete && drawnCards.length < cardCount && setSelectedIndex(i)}
-                    onMouseLeave={() => setSelectedIndex(null)}
-                    onTouchStart={() => isSpreadComplete && drawnCards.length < cardCount && setSelectedIndex(i)}
-                  >
-                    <div className="w-full h-full border border-slate-300/10 dark:border-white/5 rounded-sm flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
-                      <div className="w-4 h-4 rounded-full border border-slate-400/20 dark:border-gold/20 opacity-20 flex items-center justify-center">
-                        <span className="text-[8px] text-slate-400 dark:text-gold/40">✧</span>
-                      </div>
-                      {/* Gold burst on click */}
-                      <AnimatePresence>
-                        {isFlashing && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.4 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.6 }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
-                            className="absolute inset-0 rounded-md pointer-events-none"
-                            style={{
-                              background: 'radial-gradient(circle at center, rgba(212,175,55,0.85) 0%, rgba(212,175,55,0.4) 45%, transparent 75%)',
-                              boxShadow: '0 0 24px 8px rgba(212,175,55,0.5), inset 0 0 16px rgba(212,175,55,0.3)',
-                            }}
-                          />
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-                );
-              })}
+              {shuffledDeck.map((card, i) => (
+                <DeckCard
+                  key={`${card.id}-${shuffleKey}`}
+                  card={card}
+                  index={i}
+                  total={36}
+                  spreadProgress={spreadProgress}
+                  isSpreadComplete={isSpreadComplete}
+                  drawnCards={drawnCards}
+                  cardCount={cardCount}
+                  selectedIndex={selectedIndex}
+                  onDraw={handleDraw}
+                  onSelect={setSelectedIndex}
+                  ritualStage={ritualStage}
+                  shuffleKey={shuffleKey}
+                  handleShuffleClick={handleShuffleClick}
+                />
+              ))}
               </AnimatePresence>
 
               {/* Drag Handle for Spreading & Shuffling */}
               {ritualStage === RitualStage.SHUFFLE && (
                 <motion.div
-                  drag
-                  dragConstraints={{ left: 0, right: 300, top: -100, bottom: 100 }}
+                  drag="x"
+                  dragListener={true}
+                  dragDirectionLock={true}
+                  dragConstraints={{ left: 0, right: 300 }}
                   style={{ x: dragX }}
                   onTap={handleShuffleClick}
                   onDragEnd={(_, info) => {
-                    // Check for vertical swipe (shuffle)
-                    if (Math.abs(info.offset.y) > 50 && Math.abs(info.offset.y) > Math.abs(info.offset.x)) {
-                      handleShuffleClick();
-                    } 
                     // Check for horizontal swipe (spread)
-                    else if (info.offset.x > 150) {
+                    if (info.offset.x > 50 || dragX.get() > 100) {
                       setIsSpreadComplete(true);
                       setRitualStage(RitualStage.DRAW);
+                      dragX.set(300); // Snap to end
                     } else {
+                      dragX.set(0); // Snap back
                       setRitualStage(RitualStage.SHUFFLE);
                     }
                   }}
-                  className="absolute inset-0 z-[100] cursor-grab active:cursor-grabbing"
+                  className="absolute inset-x-[-20%] inset-y-0 z-[100] cursor-grab active:cursor-grabbing"
                 />
               )}
             </div>

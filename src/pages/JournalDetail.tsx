@@ -33,8 +33,9 @@ export const JournalDetail = () => {
         const found = await apiService.getReadingById(id);
         setReading(found);
         setReflection(found.reflection || '');
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to load reading details:", error);
+        alert(error.message || (language === 'cn' ? "加载详情失败" : "Failed to load details"));
         navigate('/journal');
       }
     };
@@ -50,9 +51,9 @@ export const JournalDetail = () => {
       await apiService.updateReading(id, reflection);
       // 保存后返回日志列表
       navigate('/journal');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update reflection:", error);
-      alert(t('updateFailed') || 'Update failed');
+      alert(error.message || (t('updateFailed') || 'Update failed'));
     }
   };
 

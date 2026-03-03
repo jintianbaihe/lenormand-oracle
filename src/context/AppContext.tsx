@@ -1,6 +1,7 @@
 // 导入 React 核心钩子
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
+import { apiService } from '../services/apiService';
 
 // 定义支持的语言类型
 type Language = 'en' | 'cn';
@@ -152,6 +153,7 @@ const translations: Record<Language, Record<string, string>> = {
     whatIsOnYourMind: "What is on your mind?",
     questionPlaceholder: "What would you like to ask the cards today?",
     submitQuestion: "Submit Question",
+    pleaseEnterQuestion: "Please enter your question to continue.",
     pieceOfGuidance: "A piece of guidance:",
     guidanceText: "Please ask as specific a question as possible. Lenormand gives direct answers to direct questions. Vague questions get vague interpretations.",
   },
@@ -284,6 +286,7 @@ const translations: Record<Language, Record<string, string>> = {
     whatIsOnYourMind: "你心中在想什么？",
     questionPlaceholder: "你今天想问卡牌什么问题？",
     submitQuestion: "提交问题",
+    pleaseEnterQuestion: "请先输入您的问题以继续。",
     pieceOfGuidance: "一点建议：",
     guidanceText: "请提出尽量准确的问题。雷诺曼对直接的问题给出直接的答案。模糊的问题得到模糊的解读。",
     step01: "第一步",
@@ -316,22 +319,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   const login = async (phone: string, code: string) => {
-    // 模拟登录逻辑
-    const mockUser: User = {
-      id: 'user_' + Date.now(),
-      username: 'Mystic Traveler',
-      avatar: 'https://images.unsplash.com/photo-1515532760646-7d63e925263a?auto=format&fit=crop&q=80&w=200&h=200',
-      phone
-    };
-    setUser(mockUser);
-    localStorage.setItem('lenormand_user', JSON.stringify(mockUser));
+    try {
+      const userData = await apiService.login(phone, code);
+      setUser(userData);
+      localStorage.setItem('lenormand_user', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
   };
 
   const guestLogin = () => {
     const guestUser: User = {
       id: 'guest_' + Date.now(),
       username: 'Guest Traveler',
-      avatar: 'https://images.unsplash.com/photo-1515532760646-7d63e925263a?auto=format&fit=crop&q=80&w=200&h=200',
+      avatar: 'https://api.dicebear.com/7.x/shapes/svg?seed=guest&backgroundColor=0a0a1a',
     };
     setUser(guestUser);
     localStorage.setItem('lenormand_user', JSON.stringify(guestUser));
@@ -343,7 +345,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateProfile = async (updates: Partial<User>) => {
-    if (user) {
+    if (user && user.id && !user.id.startsWith('guest_')) {
+      try {
+        const updatedUser = await apiService.updateProfile(
+          user.id, 
+          updates.username || user.username || '', 
+          updates.avatar || user.avatar || ''
+        );
+        setUser(updatedUser);
+        localStorage.setItem('lenormand_user', JSON.stringify(updatedUser));
+      } catch (error) {
+        console.error('Update profile failed:', error);
+        throw error;
+      }
+    } else if (user) {
+      // For guest users, just update local state
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
       localStorage.setItem('lenormand_user', JSON.stringify(updatedUser));

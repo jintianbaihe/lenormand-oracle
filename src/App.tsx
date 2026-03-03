@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, useLocation, useNavigate, Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Home } from './pages/Home';
 import { QuestionInput } from './pages/QuestionInput';
@@ -93,6 +93,7 @@ const AppContent = () => {
               <Route path="/cards" element={<CardLibrary />} />
               <Route path="/wiki" element={<Wiki />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </motion.div>
         </AnimatePresence>
@@ -103,12 +104,17 @@ const AppContent = () => {
   );
 };
 
+const router = createBrowserRouter([
+  {
+    path: "*",
+    element: <AppContent />,
+  },
+]);
+
 export default function App() {
   return (
     <AppProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <RouterProvider router={router} />
     </AppProvider>
   );
 }

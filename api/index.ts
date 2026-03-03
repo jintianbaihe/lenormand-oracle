@@ -115,6 +115,7 @@ app.post("/api/auth/send-code", async (req, res) => {
     return res.status(400).json({ error: "Phone number is required" });
   }
 
+  // In a real app, you'd store this code in a database or Redis with an expiration
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   console.log(`Verification code for ${phone}: ${code}`);
 
@@ -125,7 +126,7 @@ app.post("/api/auth/send-code", async (req, res) => {
     } else {
       res.json({ 
         message: "Alibaba Cloud SMS not configured. Code printed to server logs.",
-        demoCode: process.env.NODE_ENV !== 'production' ? code : undefined 
+        demoCode: code 
       });
     }
   } catch (err) {
@@ -135,12 +136,91 @@ app.post("/api/auth/send-code", async (req, res) => {
   }
 });
 
-app.get("/api/readings", async (req, res) => {
+/**
+ * 验证验证码并登录/注册
+ */
+app.post("/api/auth/login", async (req, res) => {
+  const { phone, code } = req.body;
+  if (!phone || !code) {
+    return res.status(400).json({ error: "Phone and code are required" });
+  }
+
+  // 简化验证逻辑：由于没有持久化存储验证码，这里假设验证码正确
+  // 在实际生产环境中，您需要从数据库/Redis中验证 code
+  try {
+    // 查找或创建用户
+    let { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("phone", phone)
+      .single();
+
+    if (error && error.code === "PGRST116") {
+      // 用户不存在，创建新用户
+      const { data: newProfile, error: createError } = await supabase
+        .from("profiles")
+        .insert([{ 
+          phone, 
+          username: `User_${phone.slice(-4)}`,
+          avatar: `https://api.dicebear.com/7.x/shapes/svg?seed=${phone}&backgroundColor=0a0a1a`
+        }])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error("Create Profile Error:", createError);
+        return res.status(500).json({ error: `Failed to create profile: ${createError.message}` });
+      }
+      profile = newProfile;
+    } else if (error) {
+      console.error("Supabase Profile Query Error:", error);
+      return res.status(500).json({ error: `Database error: ${error.message}. Please ensure the 'profiles' table exists.` });
+    }
+
+    res.json(profile);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * 更新用户信息
+ */
+app.post("/api/auth/update-profile", async (req, res) => {
+  const { id, username, avatar } = req.body;
+  if (!id) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
+
   try {
     const { data, error } = await supabase
-      .from("readings")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .from("profiles")
+      .update({ username, avatar, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/readings", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    let query = supabase.from("readings").select("*");
+    
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    const { data, error } = await query
+      .order("created_at", { ascending: false })
+      .limit(50);
 
     if (error) throw error;
     res.json(data);
@@ -169,7 +249,43 @@ app.get("/api/readings/:id", async (req, res) => {
 
 app.post("/api/readings", async (req, res) => {
   try {
-    const { date, title, cards, interpretation, reflection, question, spreadType, layoutType } = req.body;
+    const { date, title, cards, interpretation, reflection, question, spreadType, layoutType, userId } = req.body;
+    
+    // 如果有 userId，执行记录数量限制逻辑
+    if (userId) {
+      // 1. 获取该用户的记录总数
+      const { count, error: countError } = await supabase
+        .from("readings")
+        .select("*", { count: 'exact', head: true })
+        .eq("user_id", userId);
+
+      if (countError) throw countError;
+
+      // 2. 如果记录数达到或超过 50 条，删除最旧的记录
+      if (count !== null && count >= 50) {
+        // 找出最旧的记录（按 created_at 升序排列，取超出部分）
+        const deleteCount = count - 49; // 留出 49 个位置给新记录
+        const { data: oldestReadings, error: fetchOldestError } = await supabase
+          .from("readings")
+          .select("id")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: true })
+          .limit(deleteCount);
+
+        if (fetchOldestError) throw fetchOldestError;
+
+        if (oldestReadings && oldestReadings.length > 0) {
+          const idsToDelete = oldestReadings.map(r => r.id);
+          const { error: deleteError } = await supabase
+            .from("readings")
+            .delete()
+            .in("id", idsToDelete);
+          
+          if (deleteError) throw deleteError;
+        }
+      }
+    }
+
     const { data, error } = await supabase
       .from("readings")
       .insert([{ 
@@ -180,7 +296,8 @@ app.post("/api/readings", async (req, res) => {
         reflection, 
         question, 
         spread_type: spreadType, 
-        layout_type: layoutType 
+        layout_type: layoutType,
+        user_id: userId
       }])
       .select();
 

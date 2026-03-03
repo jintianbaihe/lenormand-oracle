@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useLocation, useNavigate, useBlocker } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bookmark, Share2, Brain, Star, Sparkles, Zap, Heart, CircleDot, Mail, User, Moon, Key, Anchor, Plus, LucideIcon, Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame, Bird, Baby, Ghost, Shield, Wind, Building, Palmtree, Mountain, Split, Bug, Book, Fish, Flower2 } from 'lucide-react';
+import { Bookmark, Share2, Brain, Star, Sparkles, Zap, Heart, CircleDot, Mail, User, Moon, Key, Anchor, Plus, LucideIcon, Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame, Bird, Baby, Ghost, Shield, Wind, Building, Palmtree, Mountain, Split, Bug, Book, Fish, Flower2, Check, AlertCircle } from 'lucide-react';
 import { interpretReading } from '../services/geminiService';
 import { apiService } from '../services/apiService';
 import { Card, Reading } from '../types';
@@ -26,7 +26,7 @@ export const ReadingResult = () => {
   // 获取路由导航钩子
   const navigate = useNavigate();
   // 从全局上下文获取翻译函数和当前语言
-  const { t, language } = useAppContext();
+  const { t, language, user } = useAppContext();
   
   // 从路由状态中获取抽取的卡牌数组、牌阵类型和问题
   const cards = location.state?.cards as Card[];
@@ -44,7 +44,16 @@ export const ReadingResult = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [reflection, setReflection] = useState('');
- 
+
+  // 导航守卫：如果未保存，拦截跳转
+  const blocker = useBlocker(
+    useCallback(
+      ({ currentLocation, nextLocation }) =>
+        !isSaved && currentLocation.pathname !== nextLocation.pathname,
+      [isSaved]
+    )
+  );
+
   // 页面加载时自动获取 AI 解读
   useEffect(() => {
     // 安全检查：如果没有卡牌数据，直接返回主页
@@ -106,12 +115,12 @@ export const ReadingResult = () => {
   /**
    * 确认保存到后端数据库
    */
-  const confirmSave = async () => {
+  const confirmSave = async (autoReflection?: string) => {
     if (!interpretation) return;
 
     try {
       // 构建完整的占卜记录对象
-      const readingData: Omit<Reading, 'id'> = {
+      const readingData: Omit<Reading, 'id'> & { userId?: string } = {
         date: new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'zh-CN', { month: 'long', day: 'numeric', year: 'numeric' }),
         cards,
         interpretation: interpretation.summary,
@@ -119,7 +128,8 @@ export const ReadingResult = () => {
         spreadType: cards.length,
         layoutType,
         question: question || undefined, // 存储用户问题
-        reflection: reflection.trim() || undefined // 存储用户感悟
+        reflection: (autoReflection !== undefined ? autoReflection : reflection).trim() || undefined, // 存储用户感悟
+        userId: user?.id
       };
       
       // 调用 API 服务保存到后端
@@ -128,9 +138,15 @@ export const ReadingResult = () => {
       // 更新 UI 状态
       setIsSaved(true);
       setShowSaveModal(false);
-    } catch (error) {
+      
+      // 如果有被拦截的导航，在保存后重置它（让用户留在页面看到“已保存”状态）
+      if (blocker.state === "blocked") {
+        blocker.reset();
+      }
+    } catch (error: any) {
       console.error("Failed to save reading:", error);
-      alert(language === 'cn' ? "保存失败，请稍后重试" : "Failed to save, please try again later");
+      const errorMsg = error.message || (language === 'cn' ? "保存失败，请稍后重试" : "Failed to save, please try again later");
+      alert(errorMsg);
     }
   };
 
@@ -171,8 +187,8 @@ export const ReadingResult = () => {
     <main className="flex-1 flex flex-col px-6 pt-4 pb-32 w-full max-w-2xl mx-auto overflow-y-auto no-scrollbar">
       {/* 卡牌展示区域：按照选择的牌阵布局排列 */}
       {/* 外层容器按缩放比例设置实际高度，避免与下方内容重叠 */}
-      <div className="relative w-full overflow-visible shrink-0 mt-4 mb-6" style={{ height: 'calc(380px * 0.6)' }}>
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[380px] flex items-center justify-center scale-[0.6] sm:scale-[0.75]">
+      <div className="relative w-full overflow-visible shrink-0 mt-4 mb-6" style={{ height: 'calc(380px * 0.55)' }}>
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[380px] flex items-center justify-center scale-[0.5] min-[380px]:scale-[0.6] sm:scale-[0.75]">
         {cards.map((card, idx) => {
           const pos = SPREAD_LAYOUTS[layoutType]?.[idx] || { x: 0, y: 0 };
           return (
@@ -256,10 +272,14 @@ export const ReadingResult = () => {
           disabled={isSaved}
           className={cn(
             "w-full py-4 glass-morphism rounded-full flex items-center justify-center gap-2 border-indigo-200 dark:border-indigo-500/20 active:scale-95 transition-all",
-            isSaved ? "bg-indigo-500/20 opacity-80" : "hover:bg-slate-100 dark:hover:bg-white/5"
+            isSaved ? "bg-indigo-500/20 border-indigo-500/40" : "hover:bg-slate-100 dark:hover:bg-white/5"
           )}
         >
-          <Bookmark size={18} className={cn("text-indigo-600 dark:text-indigo-300", isSaved && "fill-indigo-600 dark:fill-indigo-300")} />
+          {isSaved ? (
+            <Check size={18} className="text-indigo-600 dark:text-indigo-400" />
+          ) : (
+            <Bookmark size={18} className="text-indigo-600 dark:text-indigo-300" />
+          )}
           <span className="text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-slate-100">
             {isSaved ? t('saved') : t('saveResult')}
           </span>
@@ -301,7 +321,7 @@ export const ReadingResult = () => {
                 </span>
               </div>
               {/* 卡牌预览缩略图 */}
-              <div className="relative w-full h-[180px] flex items-center justify-center scale-[0.6] mb-10">
+              <div className="relative w-full h-[180px] flex items-center justify-center scale-[0.5] min-[380px]:scale-[0.6] mb-10">
                 {cards.map((card, idx) => {
                   const pos = SPREAD_LAYOUTS[layoutType]?.[idx] || { x: 0, y: 0 };
                   return (
@@ -355,6 +375,70 @@ export const ReadingResult = () => {
                 >
                   {t('cancel')}
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 导航拦截确认弹窗 */}
+      <AnimatePresence>
+        {blocker.state === "blocked" && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-midnight/80 backdrop-blur-xl"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              className="relative w-full max-sm glass-morphism rounded-[2.5rem] p-10 border border-indigo-500/20 bg-midnight/90 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
+            >
+              <div className="absolute -top-20 -right-20 w-40 h-40 bg-indigo-500/10 blur-[60px] rounded-full" />
+              
+              <div className="text-center space-y-6 relative z-10">
+                <div className="relative w-16 h-16 mx-auto mb-2">
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 border border-indigo-500/20 rounded-full border-dashed"
+                  />
+                  <div className="absolute inset-2 border border-indigo-500/10 rounded-full" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <AlertCircle size={28} className="text-indigo-400" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-serif italic text-white tracking-wide">
+                    {language === 'cn' ? '未保存结果' : 'Unsaved Result'}
+                  </h3>
+                  <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent mx-auto" />
+                </div>
+
+                <p className="text-sm text-indigo-100/60 leading-relaxed font-light px-2">
+                  {language === 'cn' 
+                    ? '您还没有保存本次占卜结果，确定要离开吗？' 
+                    : 'You haven\'t saved this reading yet. Are you sure you want to leave?'}
+                </p>
+
+                <div className="flex flex-col gap-3 pt-4">
+                  <button 
+                    onClick={() => confirmSave('')}
+                    className="w-full py-4 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-indigo-500/20 active:scale-95 transition-all shadow-[0_0_20px_rgba(99,102,241,0.1)]"
+                  >
+                    {language === 'cn' ? '取消并保存' : 'Cancel & Save'}
+                  </button>
+                  <button 
+                    onClick={() => blocker.proceed()}
+                    className="w-full py-4 rounded-full text-rose-400/60 text-[10px] font-bold uppercase tracking-[0.3em] hover:text-rose-400 transition-colors active:scale-95"
+                  >
+                    {language === 'cn' ? '确认离开' : 'Leave Anyway'}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

@@ -16,7 +16,7 @@ export const Preparation = () => {
 
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="flex-1 flex flex-col w-full">
       {/* Header */}
       <header className="relative z-50 flex items-center justify-between px-6 pt-14 pb-4">
         <button 

@@ -30,8 +30,8 @@ export const Journal = () => {
   const [history, setHistory] = useState<Reading[]>([]);
   // 状态：当前打开操作菜单的记录 ID
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
-  // 获取翻译函数
-  const { t } = useAppContext();
+  // 从全局上下文获取翻译函数和用户信息
+  const { t, user, language } = useAppContext();
   // 获取路由导航函数
   const navigate = useNavigate();
   // 引用：用于检测点击是否在菜单外部
@@ -41,14 +41,15 @@ export const Journal = () => {
   useEffect(() => {
     const loadHistory = async () => {
       try {
-        const data = await apiService.getReadings();
+        const data = await apiService.getReadings(user?.id);
         setHistory(data);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to load history:", error);
+        alert(error.message || (language === 'cn' ? "加载历史记录失败" : "Failed to load history"));
       }
     };
     loadHistory();
-  }, []);
+  }, [user?.id]);
 
   // 副作用：监听全局点击事件，用于关闭打开的操作菜单
   useEffect(() => {

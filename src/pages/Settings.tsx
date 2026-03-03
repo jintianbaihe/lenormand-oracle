@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
-import { User as UserIcon, Camera, Save, LogOut, ChevronLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { User as UserIcon, Camera, Save, LogOut, ChevronLeft, Sparkles } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../utils';
@@ -11,6 +11,7 @@ export const Settings = () => {
   const [username, setUsername] = useState(user?.username || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -25,10 +26,12 @@ export const Settings = () => {
   };
 
   const handleLogout = () => {
-    if (window.confirm(t('logout') + '?')) {
-      logout();
-      navigate('/auth');
-    }
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    navigate('/auth');
   };
 
   if (!user) return null;
@@ -114,6 +117,70 @@ export const Settings = () => {
           </div>
         </div>
       </main>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLogoutConfirm(false)}
+              className="absolute inset-0 bg-midnight/80 backdrop-blur-md"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              className="relative w-full max-w-sm glass-morphism rounded-[2.5rem] p-10 border border-indigo-500/20 bg-midnight/90 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
+            >
+              <div className="absolute -top-20 -right-20 w-40 h-40 bg-indigo-500/10 blur-[60px] rounded-full" />
+              
+              <div className="text-center space-y-6 relative z-10">
+                <div className="relative w-16 h-16 mx-auto mb-2">
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 border border-indigo-500/20 rounded-full border-dashed"
+                  />
+                  <div className="absolute inset-2 border border-indigo-500/10 rounded-full" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Sparkles size={28} className="text-indigo-400" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-serif italic text-white tracking-wide">
+                    {t('logout')}
+                  </h3>
+                  <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent mx-auto" />
+                </div>
+
+                <p className="text-sm text-indigo-100/60 leading-relaxed font-light px-2">
+                  {t('logout') === '退出登录' ? '您确定要退出当前账号吗？' : 'Are you sure you want to logout?'}
+                </p>
+
+                <div className="flex flex-col gap-3 pt-4">
+                  <button 
+                    onClick={confirmLogout}
+                    className="w-full py-4 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-rose-500/20 active:scale-95 transition-all"
+                  >
+                    {t('confirmAction')}
+                  </button>
+                  <button 
+                    onClick={() => setShowLogoutConfirm(false)}
+                    className="w-full py-4 rounded-full text-indigo-300/40 text-[10px] font-bold uppercase tracking-[0.3em] hover:text-indigo-300 transition-colors active:scale-95"
+                  >
+                    {t('cancelAction')}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
