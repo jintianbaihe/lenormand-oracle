@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { CheckCircle, Sparkles, Zap, Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame, Bird, Baby, Ghost, Shield, Wind, Building, Palmtree, Mountain, Split, Bug, Heart, CircleDot, Book, Mail, User, Moon, Key, Fish, Anchor, Plus, Flower2 } from 'lucide-react';
+import { CheckCircle, Sparkles } from 'lucide-react';
 import { Reading } from '../types';
 import { SPREAD_LAYOUTS } from '../constants';
 import { useAppContext } from '../context/AppContext';
 import { cn } from '../utils';
 import { apiService } from '../services/apiService';
-
-const IconMap: Record<string, any> = {
-  Zap, Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame, Bird, Baby, Ghost, Shield, Sparkles, Wind, Heart, Building, Palmtree, Mountain, Split, Bug, CircleDot, Book, Mail, User, Moon, Key, Fish, Anchor, Plus, Flower2
-};
+import { IconMap } from '../iconMap';
 
 /**
  * 日志详情页面组件

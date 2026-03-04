@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 // 导入路由钩子
 import { useNavigate } from 'react-router-dom';
 // 导入图标库
-import { MoreHorizontal, Sparkles, Zap, Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame, Bird, Baby, Ghost, Shield, Wind, Building, Palmtree, Mountain, Split, Bug, Heart, CircleDot, Book, Mail, User, Moon, Key, Fish, Anchor, Plus, Flower2, Trash2, Share2 } from 'lucide-react';
+import { MoreHorizontal, Sparkles, Trash2, Share2 } from 'lucide-react';
 // 导入类型定义
 import { Reading } from '../types';
 import { SPREAD_LAYOUTS } from '../constants';
@@ -15,11 +15,8 @@ import { cn } from '../utils';
 import { useAppContext } from '../context/AppContext';
 // 导入 API 服务
 import { apiService } from '../services/apiService';
+import { IconMap } from '../iconMap';
 
-// 图标映射表，用于根据卡牌数据中的图标名称动态渲染图标组件
-const IconMap: Record<string, any> = {
-  Zap, Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame, Bird, Baby, Ghost, Shield, Sparkles, Wind, Heart, Building, Palmtree, Mountain, Split, Bug, CircleDot, Book, Mail, User, Moon, Key, Fish, Anchor, Plus, Flower2
-};
 
 /**
  * 占卜日志页面组件
