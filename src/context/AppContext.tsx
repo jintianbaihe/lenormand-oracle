@@ -372,10 +372,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const isAuthenticated = !!user;
 
-  // 副作用：强制应用深色模式
+  // 始终强制使用深色模式
   useEffect(() => {
-    const root = window.document.documentElement; // 获取 html 元素
-    root.classList.add('dark'); // 始终添加 dark 类
+    window.document.documentElement.classList.add('dark');
   }, []);
 
   /**

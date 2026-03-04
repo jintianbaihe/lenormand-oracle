@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sparkles, Zap, Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame, Bird, Baby, Ghost, Shield, Wind, Heart, Building, Palmtree, Mountain, Split, Bug, CircleDot, Book, Mail, User, Moon, Key, Fish, Anchor, Plus, Flower2, Star, LucideIcon, X, History } from 'lucide-react';
+import { Sparkles, X, History } from 'lucide-react';
 import { interpretReading } from '../services/geminiService';
 import { LENORMAND_CARDS, Card } from '../types';
 import { SPREAD_LAYOUTS } from '../constants';
 import { cn } from '../utils';
 import { useAppContext } from '../context/AppContext';
+import { IconMap } from '../iconMap';
 
 // Ritual Stages
 enum RitualStage {
@@ -16,15 +17,6 @@ enum RitualStage {
   REVEAL = 'REVEAL'
 }
 
-// Icon mapping
-const IconMap: Record<string, LucideIcon> = {
-  Heart, Sparkles, Zap, CircleDot, Mail, User, Moon, Key, Anchor, Plus, Star,
-  Clover, Ship, Home, TreeDeciduous, Cloud, Snail, Skull, Flower, Sword, Flame,
-  Bird, Baby, Ghost, Shield, Wind, Building, Palmtree, Mountain, Split, Bug,
-  Book, Fish, Flower2
-};
-
-// FlyingCard: captures origin at mount time, animates straight to target
 interface FlyingCardProps {
   originX: number;
   originY: number;
@@ -265,11 +257,7 @@ export const DrawCards = () => {
     // 翻完所有牌后不自动跳转，等待用户点击"查看分析结果"按钮
   };
 
-  // 用户主动点击"查看分析结果"按钮时触发，此时才开始加载 AI 解读
-  const handleViewResult = () => {
-    handleComplete();
-  };
-
+  // 用户点击"查看分析结果"按钮时触发，开始加载 AI 解读并跳转
   const handleComplete = async () => {
     setIsInterpreting(true);
     try {
@@ -588,7 +576,7 @@ export const DrawCards = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.4, ease: 'easeOut' }}
-                  onClick={handleViewResult}
+                  onClick={handleComplete}
                   className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-full border border-gold/40 bg-gold/10 text-gold font-serif italic text-base sm:text-lg tracking-wide shadow-[0_0_20px_rgba(212,175,55,0.15)] active:scale-95 transition-transform hover:bg-gold/20 hover:border-gold/70"
                 >
                   {language === 'cn' ? '查看分析结果' : 'View Reading'}
