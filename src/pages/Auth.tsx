@@ -38,8 +38,8 @@ export const Auth = () => {
       const data = await apiService.sendCode(phone);
       setCountdown(60);
       if (data.demoCode) {
+        // 仅开发调试用，生产环境已禁用自动填充
         console.log("Demo Verification Code:", data.demoCode);
-        setCode(data.demoCode); // 自动填充验证码以便演示
       }
     } catch (err: any) {
       setError(err.message || '验证码发送失败，请稍后重试');
@@ -73,8 +73,12 @@ export const Auth = () => {
       const msg: string = err.message || '';
       if (msg.includes('Verification code is incorrect')) {
         setCodeError(true);
-        setCode(''); // 清空，引导重新输入
+        setCode('');
         setError('验证码错误，请检查后重试');
+      } else if (msg.includes('expired')) {
+        setCodeError(true);
+        setCode('');
+        setError('验证码已过期，请重新获取');
       } else {
         setError(msg || t('invalidCode'));
       }
